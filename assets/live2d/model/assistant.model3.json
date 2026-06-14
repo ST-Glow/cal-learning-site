@@ -1,0 +1,29 @@
+{
+  "Version": 3,
+  "FileReferences": {
+    "Moc": "assistant.moc3",
+    "Textures": [
+      "texture.webp"
+    ],
+    "Physics": "assistant.physics3.json",
+    "DisplayInfo": "assistant.cdi3.json"
+  },
+  "Groups": [
+    {
+      "Target": "Parameter",
+      "Name": "EyeBlink",
+      "Ids": [
+        "ParamEyeLOpen",
+        "ParamEyeROpen"
+      ]
+    },
+    {
+      "Target": "Parameter",
+      "Name": "LipSync",
+      "Ids": [
+        "ParamMouthOpenY"
+      ]
+    }
+  ],
+  "HitAreas": []
+}

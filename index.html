@@ -1,0 +1,456 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="面向小学五年级的分支判断一站式 CAL 自主学习网站">
+  <title>分支判断：让选择变简单</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <a class="skip-link" href="#main-content">跳到主要内容</a>
+
+  <header class="site-header">
+    <a class="brand" href="#home" data-nav="home" aria-label="返回学习首页">
+      <span class="brand-mark" aria-hidden="true">IF</span>
+      <span>
+        <strong>智慧乐园售票站</strong>
+        <small>分支判断训练中心</small>
+      </span>
+    </a>
+    <nav class="main-nav" aria-label="主要导航">
+      <button class="nav-link active" data-nav="home">学习首页</button>
+      <button class="nav-link" data-nav="map">闯关地图</button>
+      <button class="nav-link" data-nav="worksheet">电子任务单</button>
+      <button class="nav-link" data-nav="resources">资源中心</button>
+      <button class="nav-link" data-nav="evaluation">学习评价</button>
+      <button class="nav-link" data-nav="performance">我的表现</button>
+    </nav>
+    <div class="header-actions">
+      <button class="presentation-entry" id="presentation-button" aria-label="启动项目讲解模式">项目讲解</button>
+      <button class="teacher-entry" id="teacher-button" aria-label="打开教师视角">教师视角</button>
+      <button class="icon-button" id="help-button" aria-label="打开新手使用引导">?</button>
+      <button class="profile-chip" id="profile-button" aria-label="编辑学习者信息">
+        <span id="profile-avatar">新</span>
+        <span id="profile-name">新学员</span>
+      </button>
+    </div>
+  </header>
+
+  <main id="main-content">
+    <section class="page active" id="page-home" data-page="home">
+      <div class="hero">
+        <div class="hero-copy">
+          <span class="eyebrow">CAL 自主学习课程 · 小学五年级</span>
+          <h1>成为智慧乐园的<br><em>智能售票员</em></h1>
+          <p>跟着条件做选择，用流程图规划路线，再让代码准确卖出每一张票。</p>
+          <div class="hero-actions">
+            <button class="primary-button" id="start-learning">开始训练 <span aria-hidden="true">→</span></button>
+            <button class="secondary-button" data-nav="resources">查看完整课件</button>
+          </div>
+          <div class="hero-meta" aria-label="课程信息">
+            <span><strong>35</strong> 分钟</span>
+            <span><strong>5</strong> 个关卡</span>
+            <span><strong>1</strong> 个创意任务</span>
+          </div>
+        </div>
+        <div class="hero-scene" aria-label="两名小学生在智慧乐园智能售票站接受训练">
+          <img class="hero-illustration" src="assets/images/smart-ticket-park.png" alt="男生和女生在游乐园的机器人售票站前买票">
+          <div class="hero-decision" aria-label="示例判断条件：身高小于120厘米">
+            <span>身高<br>&lt; 120cm？</span>
+          </div>
+          <div class="hero-ticket hero-ticket-half">是 → 半价票</div>
+          <div class="hero-ticket hero-ticket-next">否 → 继续判断</div>
+          <button class="video-launch" id="intro-video-button" aria-label="播放任务导入视频">
+            <span aria-hidden="true">▶</span>
+            <strong>情景导入</strong>
+            <small>数字人讲解 · 约 1 分钟</small>
+          </button>
+        </div>
+      </div>
+
+      <div class="section-shell">
+        <div class="section-heading">
+          <div>
+            <span class="eyebrow">TRAINING ROUTE</span>
+            <h2>你的售票员训练路线</h2>
+          </div>
+          <p>每一关都包含“先预测、再验证、最后解释”，完成后自动记录到任务单。</p>
+        </div>
+        <div class="route-frame">
+          <div class="route-rail" aria-hidden="true">
+            <span class="rail-dot coral">情境</span>
+            <span class="rail-dot blue">流程</span>
+            <span class="rail-dot yellow">代码</span>
+            <span class="rail-dot green">测试</span>
+          </div>
+          <div class="route-preview" id="home-route-preview"></div>
+        </div>
+      </div>
+
+      <div class="section-shell rule-banner">
+        <div class="rule-icon" aria-hidden="true">120</div>
+        <div>
+          <span class="eyebrow">本课程统一规则</span>
+          <h2>先看身高，再看学生证</h2>
+          <p>身高低于 120cm 买半价票；身高达到 120cm 后，有学生证买学生票，否则买全价票。</p>
+        </div>
+        <div class="rule-code">
+          <code>height &lt; 120</code>
+          <span>边界值 120cm 不属于半价票</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="page course-page" id="page-map" data-page="map">
+      <div class="course-player">
+        <aside class="phase-panel">
+          <div class="phase-brand">
+            <span class="phase-brand-icon">IF</span>
+            <div><strong>智慧乐园</strong><small>售票员成长之旅</small></div>
+          </div>
+          <div class="level-sidebar" id="level-sidebar" aria-label="教学阶段"></div>
+          <button class="phase-tool-button" data-nav="worksheet">
+            <span aria-hidden="true">▤</span>
+            <span><strong>电子任务单</strong><small>查看成长记录</small></span>
+          </button>
+        </aside>
+
+        <section class="player-main">
+          <header class="player-toolbar">
+            <div>
+              <span class="player-kicker" id="player-kicker">STAGE 01</span>
+              <div class="player-breadcrumb">
+                <strong id="player-phase-title">情境导入</strong>
+                <span>›</span>
+                <span id="player-level-title">认识售票规则</span>
+              </div>
+            </div>
+            <div class="player-progress">
+              <span>成长进度</span>
+              <strong id="overall-progress-text">0%</strong>
+              <div class="progress-track"><span id="overall-progress-bar"></span></div>
+            </div>
+            <div class="player-tools" aria-label="快捷工具">
+              <button data-nav="home" aria-label="返回首页">⌂</button>
+              <button data-nav="resources" aria-label="资源中心">▣</button>
+              <button data-open-help aria-label="使用帮助">?</button>
+            </div>
+          </header>
+
+          <div class="substep-tabs" id="substep-tabs" aria-label="当前阶段任务"></div>
+          <section class="adaptive-card map-adaptive-card" id="map-recommendations" aria-label="个性化学习建议"></section>
+          <div class="level-stage" id="level-stage"></div>
+
+          <footer class="player-footer">
+            <button class="stage-arrow previous" id="previous-stage">← 上一站</button>
+            <div class="stage-dots" id="stage-dots" aria-hidden="true"></div>
+            <button class="stage-arrow next" id="next-stage">下一站 →</button>
+          </footer>
+        </section>
+      </div>
+    </section>
+
+    <section class="page" id="page-worksheet" data-page="worksheet">
+      <div class="page-banner compact worksheet-banner">
+        <div>
+          <span class="eyebrow">MY WORKSHEET</span>
+          <h1>电子学习任务单</h1>
+          <p>像收集闯关印章一样，留下预测、证据和自己的思考。</p>
+        </div>
+        <div class="worksheet-banner-tools">
+          <div class="worksheet-overview" aria-label="任务单完成概况">
+            <div><strong id="worksheet-completed-stat">0/6</strong><span>完成关卡</span></div>
+            <div><strong id="worksheet-star-stat">0/18</strong><span>收集星星</span></div>
+            <div><strong id="worksheet-thinking-stat">0/6</strong><span>思考记录</span></div>
+          </div>
+          <div class="banner-actions">
+            <button class="secondary-button" id="print-worksheet">打印任务单</button>
+            <button class="primary-button" id="export-worksheet">导出学习记录</button>
+          </div>
+        </div>
+      </div>
+      <div class="worksheet-layout">
+        <div class="worksheet-main" id="worksheet-content"></div>
+        <aside class="worksheet-summary">
+          <div class="passport-heading">
+            <span>LEARNER PASS</span>
+            <strong>智慧乐园学习护照</strong>
+          </div>
+          <div class="passport-profile">
+            <div class="passport-avatar" aria-hidden="true">IF</div>
+            <div><small>持有人</small><h2 id="passport-name">未来工程师</h2></div>
+          </div>
+          <dl id="learner-summary"></dl>
+          <div class="completion-ring" id="completion-ring"><span>0%</span></div>
+          <p id="worksheet-tip">先从第一关开始，任务单会自动成长。</p>
+          <div class="passport-notes">
+            <span>自动保存</span>
+            <span>可继续修改</span>
+            <span>支持打印</span>
+          </div>
+        </aside>
+      </div>
+    </section>
+
+    <section class="page" id="page-resources" data-page="resources">
+      <div class="page-banner compact resource-banner">
+        <div>
+          <span class="eyebrow">RESOURCE CENTER</span>
+          <h1>智慧乐园资源站</h1>
+          <p>先学核心课件，再按需要进入微课、案例和帮助站。</p>
+        </div>
+        <div class="resource-banner-guide">
+          <span><b>01</b> 看课件</span>
+          <i>→</i>
+          <span><b>02</b> 听讲解</span>
+          <i>→</i>
+          <span><b>03</b> 去挑战</span>
+        </div>
+      </div>
+      <div class="resource-grid">
+        <article class="resource-card featured resource-courseware">
+          <div class="resource-card-copy">
+            <div class="resource-label">推荐从这里开始</div>
+            <span class="resource-kicker">CORE COURSEWARE · 5 PAGES</span>
+            <h2>《分支判断：让选择变简单》</h2>
+            <p>精选核心课件截图，规则、流程图与代码已统一为“身高 &lt; 120cm 买半价票”。</p>
+            <div class="resource-highlights">
+              <span>双分支结构</span><span>菱形判断框</span><span>if-else 代码</span>
+            </div>
+            <div class="resource-actions">
+              <button class="primary-button" id="open-corrected-slides">网页内学习</button>
+              <a class="secondary-button link-button" href="assets/courseware/branch-judgment-student-edition.pptx">下载 PPTX</a>
+            </div>
+          </div>
+          <div class="resource-preview" aria-hidden="true">
+            <img src="assets/courseware/student-slides/slide-3.png" alt="">
+            <span>学生校正版</span>
+          </div>
+        </article>
+        <article class="resource-card resource-reference">
+          <div class="resource-card-top"><div class="resource-icon" aria-hidden="true">原</div><span>教师参考站</span></div>
+          <h2>原始完整课件</h2>
+          <p>保留教师原始34页课件，作为教学设计和完整内容参考。</p>
+          <div class="resource-actions">
+            <button class="text-button" id="open-pdf">网页内查看 →</button>
+            <a class="text-button link-button" href="%E3%80%8A%E5%88%86%E6%94%AF%E5%88%A4%E6%96%AD%E3%80%8B%E5%8E%9F%E5%9E%8B%E6%95%99%E5%AD%A6%E8%AF%BE%E4%BB%B6.pdf" target="_blank" rel="noopener">新窗口打开 →</a>
+          </div>
+        </article>
+        <article class="resource-card resource-video">
+          <div class="resource-card-top"><div class="resource-icon video-icon" aria-hidden="true">▶</div><span>微课放映站</span></div>
+          <h2>数字人微课</h2>
+          <p>收录情景导入、知识讲解和古涛老师讲解三段课程视频。</p>
+          <button class="text-button" id="open-video-library">进入视频库 →</button>
+          <button class="text-button" id="open-gu-tao-video">播放古涛老师讲解 ▶</button>
+        </article>
+        <article class="resource-card resource-extension">
+          <div class="resource-card-top"><div class="resource-icon" aria-hidden="true">↗</div><span>生活探索站</span></div>
+          <h2>生活中的分支</h2>
+          <p>红绿灯、体温检测、会员折扣等迁移案例。</p>
+          <button class="text-button" id="open-extension">查看拓展案例 →</button>
+        </article>
+        <article class="resource-card resource-help">
+          <div class="resource-card-top"><div class="resource-icon" aria-hidden="true">?</div><span>随身帮助站</span></div>
+          <h2>操作与学习帮助</h2>
+          <p>了解键盘操作、进度保存、闸机挑战和小柒老师的使用方法。</p>
+          <button class="text-button" data-open-help>打开帮助 →</button>
+        </article>
+      </div>
+      <div class="pdf-viewer hidden" id="pdf-viewer">
+        <div class="viewer-toolbar">
+          <strong id="pdf-viewer-title">《分支判断》原型教学课件</strong>
+          <button class="icon-button" id="close-pdf" aria-label="关闭课件">×</button>
+        </div>
+        <object id="pdf-viewer-object" data="%E3%80%8A%E5%88%86%E6%94%AF%E5%88%A4%E6%96%AD%E3%80%8B%E5%8E%9F%E5%9E%8B%E6%95%99%E5%AD%A6%E8%AF%BE%E4%BB%B6.pdf" type="application/pdf">
+          <p>当前浏览器无法嵌入 PDF，请使用上方“新窗口打开”。</p>
+        </object>
+      </div>
+    </section>
+
+    <section class="page" id="page-evaluation" data-page="evaluation">
+      <div class="page-banner compact">
+        <div>
+          <span class="eyebrow">FINAL CHECK</span>
+          <h1>总结与学习评价</h1>
+          <p>完成知识测验、自我评价和反馈问卷，领取结业卡。</p>
+        </div>
+      </div>
+      <div class="knowledge-map" aria-label="知识地图">
+        <div>生活规则<small>如果……否则……</small></div><span>→</span>
+        <div>判断条件<small>成立 / 不成立</small></div><span>→</span>
+        <div>流程图<small>菱形与路径</small></div><span>→</span>
+        <div>代码<small>if / else</small></div><span>→</span>
+        <div>测试<small>边界值与调试</small></div>
+      </div>
+      <div class="evaluation-layout">
+        <div class="quiz-panel" id="quiz-panel"></div>
+        <aside class="evaluation-side">
+          <div class="side-card">
+            <span class="eyebrow">SELF CHECK</span>
+            <h2>我的学习表现</h2>
+            <div id="self-rating"></div>
+          </div>
+          <div class="side-card">
+            <span class="eyebrow">FEEDBACK</span>
+            <h2>资源体验问卷</h2>
+            <form id="feedback-form">
+              <label>网页是否容易操作？
+                <select name="ease" required>
+                  <option value="">请选择</option>
+                  <option>非常容易</option><option>比较容易</option><option>一般</option><option>有些困难</option>
+                </select>
+              </label>
+              <label>哪一部分最帮助你理解？
+                <select name="helpful" required>
+                  <option value="">请选择</option>
+                  <option>轨道闸机解谜</option><option>代码同步运行</option><option>路径错误回放</option><option>边界值故障排查</option><option>智能助手</option>
+                </select>
+              </label>
+              <label>现在你有信心解释分支判断吗？
+                <select name="confidence" required>
+                  <option value="">请选择</option>
+                  <option>很有信心</option><option>有一些信心</option><option>还需要练习</option>
+                </select>
+              </label>
+              <label>给资源的一条建议
+                <textarea name="suggestion" rows="3" placeholder="可以写下你最真实的想法"></textarea>
+              </label>
+              <button class="primary-button full-width" type="submit">提交反馈</button>
+            </form>
+          </div>
+        </aside>
+      </div>
+      <div class="certificate hidden" id="certificate">
+        <span class="certificate-star" aria-hidden="true">★</span>
+        <p>智慧乐园训练中心</p>
+        <h2>智慧乐园算法奖状</h2>
+        <div class="certificate-title" id="certificate-title">智慧乐园规则小达人</div>
+        <strong id="certificate-name">优秀学员</strong>
+        <p id="certificate-achievement">已经完成分支判断训练。</p>
+        <div class="certificate-stars" id="certificate-stars">0 / 18 颗闯关星</div>
+        <small id="certificate-id"></small>
+        <button class="secondary-button" id="print-certificate">打印奖状</button>
+      </div>
+    </section>
+
+    <section class="page performance-page" id="page-performance" data-page="performance">
+      <div class="performance-shell" id="performance-dashboard"></div>
+    </section>
+
+    <section class="page teacher-page" id="page-teacher" data-page="teacher">
+      <div class="page-banner compact teacher-banner">
+        <div>
+          <span class="eyebrow">TEACHER VIEW</span>
+          <h1>教师教学诊断中心</h1>
+          <p>导入学生学习记录，查看完成度、知识掌握、错误类型和补学建议。</p>
+        </div>
+        <button class="secondary-button" data-nav="home">返回学生学习首页</button>
+      </div>
+      <div class="teacher-theory-strip" aria-label="教学设计理论依据">
+        <article><strong>CAL结构化学习</strong><span>知识学习—闯关实践—过程记录—总结评价</span></article>
+        <article><strong>掌握学习</strong><span>诊断薄弱点，推荐补学任务，再次评价</span></article>
+        <article><strong>支架教学</strong><span>方向提示—关键线索—半成品示例三级递进</span></article>
+        <article><strong>形成性评价</strong><span>综合路径、尝试、解释、测验与自评证据</span></article>
+      </div>
+      <div class="teacher-learner-analysis">
+        <strong>学习者分析</strong>
+        <span>对象：小学五年级，约10—11岁</span>
+        <span>基础：有生活规则经验，初次接触流程图和条件代码</span>
+        <span>设计回应：卡通情境、短步骤、即时反馈、无速度惩罚和三级支架</span>
+      </div>
+      <div class="teacher-dashboard" id="teacher-dashboard"></div>
+    </section>
+  </main>
+
+  <div class="live2d-assistant" id="live2d-assistant">
+    <div class="assistant-panel hidden" id="assistant-panel" role="dialog" aria-modal="false" aria-labelledby="assistant-title">
+      <div class="assistant-header">
+        <div>
+          <span class="assistant-avatar" aria-hidden="true">柿</span>
+          <div><strong id="assistant-title">小柿老师</strong><small id="assistant-context">正在了解你的学习位置</small></div>
+        </div>
+        <button class="icon-button" id="close-assistant" aria-label="关闭智能助手">×</button>
+      </div>
+      <div class="assistant-messages" id="assistant-messages" aria-live="polite"></div>
+      <div class="quick-prompts" id="quick-prompts"></div>
+      <form class="assistant-form" id="assistant-form">
+        <input id="assistant-input" aria-label="向小柿老师提问" maxlength="500" placeholder="说说你卡在哪里……" autocomplete="off">
+        <button type="submit" aria-label="发送问题">发送</button>
+      </form>
+      <p class="assistant-note" id="assistant-note">小柿老师会先提问和提示，帮助你自己找到答案。</p>
+    </div>
+    <button class="live2d-character" id="assistant-button" type="button" aria-label="打开小柿老师对话">
+      <span class="live2d-greeting" id="live2d-greeting">遇到困难就点我吧！</span>
+      <canvas id="live2d-canvas" width="440" height="600" aria-hidden="true"></canvas>
+      <span class="live2d-fallback hidden" id="live2d-fallback" aria-hidden="true">柿</span>
+      <strong class="live2d-name">小柿老师</strong>
+    </button>
+  </div>
+
+  <section class="usage-tour hidden" id="usage-tour" aria-live="polite">
+    <div class="tour-spotlight" id="tour-spotlight" aria-hidden="true"></div>
+    <div class="tour-guide-card" id="tour-guide-card" role="dialog" aria-modal="true" aria-labelledby="tour-guide-title">
+      <div class="tour-guide-top">
+        <span id="tour-guide-count">1 / 6</span>
+        <button type="button" id="tour-skip">跳过引导</button>
+      </div>
+      <span class="eyebrow">QUICK GUIDE</span>
+      <h2 id="tour-guide-title">欢迎来到智慧乐园</h2>
+      <p id="tour-guide-text"></p>
+      <div class="tour-guide-actions">
+        <button type="button" class="secondary-button" id="tour-previous">上一步</button>
+        <button type="button" class="primary-button" id="tour-next">下一步</button>
+      </div>
+    </div>
+  </section>
+
+  <div class="modal-backdrop hidden" id="modal-backdrop"></div>
+  <section class="modal hidden" id="profile-modal" role="dialog" aria-modal="true" aria-labelledby="profile-modal-title">
+    <button class="modal-close icon-button" data-close-modal aria-label="关闭">×</button>
+    <span class="eyebrow">LEARNER PROFILE</span>
+    <h2 id="profile-modal-title">创建你的训练档案</h2>
+    <p>这些信息只保存在当前浏览器中，不会自动上传。</p>
+    <form id="profile-form">
+      <label>姓名<input name="name" required maxlength="12" placeholder="请输入姓名"></label>
+      <label>班级<input name="className" required maxlength="20" placeholder="例如：五（2）班"></label>
+      <label>小组<input name="group" required maxlength="20" placeholder="例如：第 3 小组"></label>
+      <button class="primary-button full-width" type="submit">保存并开始训练</button>
+    </form>
+  </section>
+
+  <section class="modal help-modal hidden" id="help-modal" role="dialog" aria-modal="true" aria-labelledby="help-title">
+    <button class="modal-close icon-button" data-close-modal aria-label="关闭">×</button>
+    <span class="eyebrow">HOW TO USE</span>
+    <h2 id="help-title">三步开始自主学习</h2>
+    <ol class="help-steps">
+      <li><span>1</span><div><strong>按地图依次闯关</strong><p>每关先预测，再操作验证，最后说出理由。</p></div></li>
+      <li><span>2</span><div><strong>遇到困难先看提示</strong><p>点击“提示模式”或右下角“小柿老师”，获得启发而不是直接答案。</p></div></li>
+      <li><span>3</span><div><strong>查看电子任务单</strong><p>答案自动保存。刷新页面后仍可继续，完成后可以打印或导出。</p></div></li>
+      <li><span>4</span><div><strong>理解个性化推荐</strong><p>系统根据知识检查、闸机路径、尝试和自评推荐练习；推荐不会锁定关卡，你仍可自由选择。</p></div></li>
+    </ol>
+    <div class="accessibility-note"><strong>无障碍操作：</strong>按 Tab 键移动焦点，按 Enter 或空格选择；正确与错误均同时显示文字和图标。</div>
+    <button class="primary-button full-width" data-close-modal>我知道了</button>
+  </section>
+
+  <section class="modal media-modal hidden" id="media-modal" role="dialog" aria-modal="true" aria-labelledby="media-title">
+    <button class="modal-close icon-button" data-close-modal aria-label="关闭">×</button>
+    <span class="eyebrow">DIGITAL TEACHER</span>
+    <h2 id="media-title">数字人微课</h2>
+    <div id="media-content"></div>
+  </section>
+
+  <div class="toast-region" id="toast-region" aria-live="polite"></div>
+  <script src="assets/live2d/vendor/live2dcubismcore.min.js"></script>
+  <script src="assets/live2d/vendor/pixi.min.js"></script>
+  <script src="assets/live2d/vendor/cubism4.min.js"></script>
+  <script src="config.js"></script>
+  <script src="learning-model.js"></script>
+  <script src="ticket-game.js"></script>
+  <script src="teacher-dashboard.js"></script>
+  <script src="performance-dashboard.js"></script>
+  <script src="live2d-assistant.js"></script>
+  <script src="usage-tour.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

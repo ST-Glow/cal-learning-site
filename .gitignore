@@ -1,0 +1,21 @@
+.env
+outputs/
+系统源代码/
+系统打包部署代码/
+课件/
+6月14日/
+6月14日(1)/
+
+# Original videos are duplicated under assets/videos for the website.
+/20232821031古涛讲解.mp4
+/情景导入.mp4
+/知识讲解.mp4
+
+# Source documents are not needed by the deployed static site.
+/*.docx
+/*.pptx
+
+# Local/editor artifacts.
+.DS_Store
+Thumbs.db
+*.log

@@ -1,0 +1,14 @@
+PixiJS 6.5.10
+Copyright (c) 2013-2017 Mat Groves, Chad Engler
+License: MIT
+Source: https://github.com/pixijs/pixijs
+
+pixi-live2d-display 0.4.0
+Copyright (c) guansss and contributors
+License: MIT
+Source: https://github.com/guansss/pixi-live2d-display
+
+Live2D Cubism Core
+Copyright Live2D Inc.
+Use is subject to the Live2D Proprietary Software License Agreement.
+Source runtime copied from the user-provided reference project.

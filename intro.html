@@ -1,0 +1,479 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="《智慧乐园票价公约》8分钟跨学科CAL项目介绍">
+  <title>智慧乐园票价公约｜项目介绍</title>
+  <style>
+    :root {
+      --navy: #08265f;
+      --blue: #3978f6;
+      --cyan: #39a7d8;
+      --green: #71bb48;
+      --orange: #ff9b54;
+      --yellow: #ffd447;
+      --ink: #17324b;
+      --muted: #60758c;
+      --line: #d7e5ee;
+      --paper: #f8fcff;
+      --shadow: 0 18px 48px rgba(23, 50, 75, .15);
+    }
+
+    * { box-sizing: border-box; }
+    html, body { margin: 0; min-height: 100%; }
+    body {
+      overflow: hidden;
+      color: var(--ink);
+      background: #eaf5fb;
+      font-family: "Microsoft YaHei", "PingFang SC", "Helvetica Neue", Arial, sans-serif;
+    }
+    button, a { font: inherit; }
+    button:focus-visible, a:focus-visible { outline: 4px solid rgba(255, 212, 71, .9); outline-offset: 3px; }
+
+    .deck-shell { min-height: 100vh; background: linear-gradient(145deg, #f9fdff, #e9f5fb 70%, #fff7e9); }
+    .deck-progress { position: fixed; z-index: 50; inset: 0 0 auto; height: 5px; background: rgba(255,255,255,.55); }
+    .deck-progress > span { display: block; width: 14.285%; height: 100%; background: linear-gradient(90deg, var(--blue), #725ee8, var(--orange)); transition: width .45s ease; }
+    .deck-top {
+      position: fixed;
+      z-index: 40;
+      inset: 5px 0 auto;
+      height: 64px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 clamp(20px, 3vw, 48px);
+      pointer-events: none;
+      transition: opacity .25s ease, visibility .25s ease;
+    }
+    .deck-brand, .deck-tools { display: flex; align-items: center; gap: 12px; pointer-events: auto; }
+    .deck-brand-mark { display: grid; place-items: center; width: 40px; height: 40px; border-radius: 13px; color: #fff; background: linear-gradient(145deg, var(--blue), #725ee8); font-weight: 900; box-shadow: 0 8px 20px rgba(57,120,246,.25); }
+    .deck-brand strong { display: block; font-size: 15px; }
+    .deck-brand small { display: block; color: var(--muted); margin-top: 2px; }
+    .deck-counter { min-width: 65px; color: var(--navy); font-weight: 900; letter-spacing: .08em; }
+    .fullscreen-button { border: 1px solid rgba(57,120,246,.22); border-radius: 999px; padding: 8px 13px; color: var(--navy); background: rgba(255,255,255,.82); cursor: pointer; box-shadow: 0 6px 18px rgba(23,50,75,.08); }
+    body.dark-slide .deck-brand strong, body.dark-slide .deck-counter { color: #fff; text-shadow: 0 2px 10px rgba(0,0,0,.2); }
+    body.dark-slide .deck-brand small { color: rgba(255,255,255,.72); }
+    body.image-slide .deck-top { opacity: 0; visibility: hidden; }
+
+    .deck { position: relative; min-height: 100vh; }
+    .slide {
+      position: absolute;
+      inset: 0;
+      display: grid;
+      align-items: center;
+      padding: 78px clamp(34px, 6vw, 108px) 86px;
+      opacity: 0;
+      transform: translateX(60px) scale(.985);
+      pointer-events: none;
+      transition: opacity .48s ease, transform .48s cubic-bezier(.2,.8,.2,1);
+      overflow: hidden;
+    }
+    .slide::before { content: ""; position: absolute; inset: 0; pointer-events: none; background: radial-gradient(circle at 88% 14%, rgba(57,120,246,.13), transparent 24%), radial-gradient(circle at 8% 88%, rgba(255,155,84,.12), transparent 26%); }
+    .slide.active { opacity: 1; transform: none; pointer-events: auto; z-index: 2; }
+    .slide.leaving-left { transform: translateX(-55px) scale(.985); }
+    .slide-inner { position: relative; z-index: 1; width: min(1440px, 100%); margin: 0 auto; }
+    .slide-image-page { padding: 12px clamp(16px, 2vw, 34px) 84px; background: #f5faff; }
+    .slide-image-page::before { display: none; }
+    .slide-image-frame {
+      position: relative;
+      z-index: 1;
+      display: grid;
+      place-items: center;
+      width: min(1680px, 100%);
+      height: calc(100vh - 96px);
+      margin: 0 auto;
+      overflow: hidden;
+    }
+    .slide-image-frame img {
+      position: absolute;
+      inset: 0;
+      display: block;
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      border: 1px solid rgba(57,120,246,.13);
+      border-radius: 16px;
+      background: #fff;
+      box-shadow: 0 14px 38px rgba(23,50,75,.13);
+    }
+    .slide-kicker { display: inline-flex; align-items: center; gap: 8px; border-radius: 999px; padding: 7px 13px; color: var(--blue); background: #eaf2ff; font-size: 13px; font-weight: 900; letter-spacing: .08em; }
+    .slide-kicker::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: currentColor; }
+    .slide-title { margin: 13px 0 10px; color: var(--navy); font-size: clamp(34px, 4.7vw, 68px); line-height: 1.08; letter-spacing: -.04em; }
+    .slide-subtitle { margin: 0; max-width: 850px; color: var(--muted); font-size: clamp(16px, 1.55vw, 23px); line-height: 1.75; }
+    .time-chip { position: absolute; top: 2px; right: 0; border: 1px solid rgba(57,120,246,.18); border-radius: 999px; padding: 7px 12px; color: var(--muted); background: rgba(255,255,255,.75); font-size: 13px; font-weight: 800; }
+    .accent-line { width: 78px; height: 6px; margin: 15px 0 22px; border-radius: 999px; background: linear-gradient(90deg, var(--blue), var(--orange)); }
+
+    .cover { color: #fff; background: linear-gradient(110deg, #061b4b 0%, #0a3578 47%, #3978f6 100%); }
+    .cover::before { background: radial-gradient(circle at 75% 25%, rgba(82,205,255,.34), transparent 28%), radial-gradient(circle at 10% 90%, rgba(255,155,84,.18), transparent 26%); }
+    .cover-grid { display: grid; grid-template-columns: .88fr 1.12fr; align-items: center; gap: clamp(18px, 4vw, 60px); }
+    .cover .slide-kicker { color: #9fddff; background: rgba(255,255,255,.1); }
+    .cover .slide-title { color: #fff; font-size: clamp(48px, 6.7vw, 94px); }
+    .cover .slide-title em { display: block; color: #61d4ff; font-style: normal; }
+    .cover .slide-subtitle { color: rgba(255,255,255,.82); }
+    .cover-tags { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 24px; }
+    .cover-tags span { border: 1px solid rgba(255,255,255,.2); border-radius: 999px; padding: 8px 13px; background: rgba(255,255,255,.08); font-weight: 700; }
+    .hero-visual { position: relative; min-height: min(62vh, 620px); border-radius: 34px; overflow: hidden; box-shadow: 0 30px 70px rgba(0,0,0,.26); background: linear-gradient(145deg, rgba(255,255,255,.12), rgba(255,255,255,.04)); }
+    .hero-visual img { width: 100%; height: 100%; min-height: min(62vh, 620px); object-fit: cover; display: block; }
+    .hero-visual::after { content: ""; position: absolute; inset: 0; background: linear-gradient(90deg, rgba(8,38,95,.2), transparent 36%); pointer-events: none; }
+    .cover .time-chip { color: rgba(255,255,255,.82); border-color: rgba(255,255,255,.18); background: rgba(255,255,255,.08); }
+
+    .two-column { display: grid; grid-template-columns: .9fr 1.1fr; gap: clamp(22px, 4vw, 56px); align-items: center; margin-top: 26px; }
+    .compare-stack { display: grid; gap: 15px; }
+    .compare-card { position: relative; padding: 21px 23px 21px 70px; border: 1px solid var(--line); border-radius: 22px; background: rgba(255,255,255,.9); box-shadow: 0 12px 30px rgba(23,50,75,.08); }
+    .compare-card > span { position: absolute; left: 20px; top: 20px; display: grid; place-items: center; width: 34px; height: 34px; border-radius: 11px; color: #fff; background: var(--orange); font-weight: 900; }
+    .compare-card.good > span { background: var(--green); }
+    .compare-card h3 { margin: 0 0 8px; color: var(--navy); font-size: clamp(19px, 2vw, 28px); }
+    .compare-card p { margin: 0; color: var(--muted); line-height: 1.65; }
+    .thesis { margin: 15px 0 0; border-left: 5px solid var(--blue); padding: 12px 17px; border-radius: 0 14px 14px 0; color: var(--navy); background: #edf4ff; font-size: clamp(16px, 1.5vw, 21px); font-weight: 900; line-height: 1.6; }
+
+    .browser-frame { overflow: hidden; border: 1px solid var(--line); border-radius: 18px; background: #fff; box-shadow: var(--shadow); }
+    .browser-bar { height: 34px; display: flex; align-items: center; gap: 7px; padding: 0 13px; border-bottom: 1px solid #e3edf3; background: #f6fafc; }
+    .browser-bar i { width: 8px; height: 8px; border-radius: 50%; background: #ff826c; }
+    .browser-bar i:nth-child(2) { background: #ffd15b; }
+    .browser-bar i:nth-child(3) { background: #69c77c; }
+    .browser-bar span { margin-left: 6px; color: #8aa0b2; font-size: 11px; font-style: normal; }
+    .browser-frame img { display: block; width: 100%; aspect-ratio: 16 / 9; object-fit: cover; object-position: top; background: #eaf4fa; }
+    .browser-caption { display: flex; justify-content: space-between; gap: 16px; padding: 11px 15px; color: var(--muted); font-size: 13px; }
+    .browser-caption strong { color: var(--navy); }
+
+    .mechanism-layout { display: grid; grid-template-columns: 1.05fr .95fr; gap: clamp(24px, 4vw, 54px); align-items: center; margin-top: 24px; }
+    .cal-loop { position: relative; min-height: 330px; display: grid; place-items: center; }
+    .loop-center { position: relative; z-index: 2; display: grid; place-items: center; width: 150px; height: 150px; border-radius: 50%; color: #fff; background: linear-gradient(145deg, var(--navy), var(--blue)); box-shadow: 0 18px 35px rgba(57,120,246,.28); text-align: center; font-weight: 900; line-height: 1.5; }
+    .loop-items { position: absolute; inset: 0; }
+    .loop-item { position: absolute; display: grid; place-items: center; width: 120px; min-height: 70px; padding: 10px; border: 1px solid var(--line); border-radius: 18px; background: #fff; box-shadow: 0 9px 24px rgba(23,50,75,.09); color: var(--navy); font-weight: 900; text-align: center; }
+    .loop-item small { display: block; margin-top: 4px; color: var(--muted); font-weight: 600; }
+    .loop-item:nth-child(1) { left: 2%; top: 6%; }
+    .loop-item:nth-child(2) { right: 2%; top: 6%; }
+    .loop-item:nth-child(3) { right: 0; bottom: 7%; }
+    .loop-item:nth-child(4) { left: 0; bottom: 7%; }
+    .loop-arrow { position: absolute; inset: 28px; border: 4px dashed rgba(57,120,246,.24); border-radius: 50%; }
+    .support-strip { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 15px; }
+    .support-strip span { padding: 11px 8px; border-radius: 13px; color: var(--navy); background: #edf4ff; text-align: center; font-weight: 900; font-size: 13px; }
+
+    .goal-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: clamp(14px, 2.3vw, 30px); margin-top: 28px; }
+    .goal-card { position: relative; overflow: hidden; min-height: 410px; padding: 18px; border: 1px solid var(--line); border-radius: 26px; background: rgba(255,255,255,.92); box-shadow: var(--shadow); }
+    .goal-card::before { content: ""; position: absolute; inset: 0 0 auto; height: 8px; background: var(--goal-color); }
+    .goal-image { height: 175px; overflow: hidden; margin-bottom: 16px; border-radius: 18px; background: #edf5ff; }
+    .goal-image img { width: 100%; height: 100%; object-fit: cover; }
+    .goal-card header { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
+    .goal-card h3 { margin: 0; color: var(--navy); font-size: clamp(21px, 2.1vw, 30px); }
+    .goal-card b { color: var(--goal-color); font-size: 31px; }
+    .goal-card dl { margin: 16px 0 0; }
+    .goal-card dt { margin-top: 12px; color: var(--muted); font-size: 12px; font-weight: 900; letter-spacing: .09em; }
+    .goal-card dd { margin: 5px 0 0; color: var(--ink); line-height: 1.55; font-weight: 700; }
+
+    .route-layout { display: grid; grid-template-columns: .9fr 1.1fr; gap: clamp(22px, 4vw, 55px); align-items: center; margin-top: 22px; }
+    .lesson-route { position: relative; display: grid; gap: 12px; }
+    .route-step { display: grid; grid-template-columns: 56px 1fr auto; align-items: center; gap: 14px; padding: 13px 16px; border: 1px solid var(--line); border-radius: 18px; background: rgba(255,255,255,.92); box-shadow: 0 9px 24px rgba(23,50,75,.08); }
+    .route-step > span { display: grid; place-items: center; width: 46px; height: 46px; border-radius: 15px; color: #fff; background: var(--route-color); font-size: 20px; font-weight: 900; }
+    .route-step strong { display: block; color: var(--navy); font-size: 18px; }
+    .route-step small { color: var(--muted); line-height: 1.5; }
+    .route-step em { border-radius: 999px; padding: 6px 10px; color: var(--route-color); background: color-mix(in srgb, var(--route-color) 12%, white); font-size: 12px; font-style: normal; font-weight: 900; }
+    .screenshot-pair { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+    .route-art { grid-column: 1 / -1; height: 150px; overflow: hidden; border-radius: 20px; background: #eaf4fb; }
+    .route-art img { width: 100%; height: 100%; object-fit: cover; }
+
+    .evidence-layout { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(22px, 3vw, 44px); align-items: center; margin-top: 22px; }
+    .evidence-chain { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+    .evidence-chain span { flex: 1 1 28%; min-width: 120px; padding: 12px 10px; border-radius: 14px; color: var(--navy); background: #fff; border: 1px solid var(--line); font-size: 13px; font-weight: 900; text-align: center; }
+    .score-bar { display: grid; grid-template-columns: 60fr 25fr 15fr; overflow: hidden; height: 54px; margin: 18px 0; border-radius: 17px; color: #fff; box-shadow: 0 10px 25px rgba(23,50,75,.13); }
+    .score-bar span { display: grid; place-items: center; padding: 6px; background: var(--blue); font-weight: 900; text-align: center; font-size: 13px; }
+    .score-bar span:nth-child(2) { background: var(--green); }
+    .score-bar span:nth-child(3) { background: var(--orange); }
+    .evaluation-art { height: 130px; overflow: hidden; border-radius: 20px; background: #eaf4fb; }
+    .evaluation-art img { width: 100%; height: 100%; object-fit: cover; }
+
+    .closing { color: #fff; background: linear-gradient(115deg, #062055 0%, #0b3f82 54%, #3978f6 100%); }
+    .closing::before { background: radial-gradient(circle at 74% 28%, rgba(255,212,71,.28), transparent 20%), radial-gradient(circle at 90% 80%, rgba(113,187,72,.2), transparent 26%); }
+    .closing-grid { display: grid; grid-template-columns: 1fr 1fr; align-items: center; gap: clamp(25px, 5vw, 70px); }
+    .closing .slide-kicker { color: #a7e5ff; background: rgba(255,255,255,.1); }
+    .closing .slide-title { color: #fff; }
+    .closing .slide-subtitle { color: rgba(255,255,255,.82); }
+    .closing-visual { height: min(58vh, 560px); overflow: hidden; border-radius: 32px; box-shadow: 0 26px 60px rgba(0,0,0,.26); }
+    .closing-visual img { width: 100%; height: 100%; object-fit: cover; }
+    .enter-button { display: inline-flex; align-items: center; gap: 12px; margin-top: 26px; border: 0; border-radius: 16px; padding: 15px 22px; color: var(--navy); background: var(--yellow); box-shadow: 0 13px 30px rgba(255,212,71,.27); font-weight: 900; text-decoration: none; }
+    .closing .time-chip { color: rgba(255,255,255,.82); border-color: rgba(255,255,255,.18); background: rgba(255,255,255,.08); }
+
+    .deck-nav {
+      position: fixed;
+      z-index: 45;
+      left: 50%;
+      bottom: 18px;
+      transform: translateX(-50%);
+      display: flex;
+      align-items: center;
+      gap: 13px;
+      border: 1px solid rgba(57,120,246,.17);
+      border-radius: 999px;
+      padding: 8px 10px;
+      background: rgba(255,255,255,.88);
+      box-shadow: 0 13px 35px rgba(23,50,75,.15);
+      backdrop-filter: blur(16px);
+    }
+    .nav-button { min-width: 92px; border: 0; border-radius: 999px; padding: 10px 14px; color: var(--navy); background: #edf4ff; cursor: pointer; font-weight: 900; }
+    .nav-button.primary { color: #fff; background: var(--blue); }
+    .nav-button:disabled { opacity: .4; cursor: default; }
+    .deck-dots { display: flex; gap: 7px; }
+    .deck-dot { width: 10px; height: 10px; border: 0; border-radius: 50%; padding: 0; background: #c9d7e1; cursor: pointer; transition: width .25s ease, background .25s ease; }
+    .deck-dot.active { width: 28px; border-radius: 999px; background: var(--blue); }
+    .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+    @media (max-width: 1100px) {
+      .slide { padding-inline: 38px; }
+      .slide-title { font-size: clamp(32px, 5vw, 54px); }
+      .goal-card { min-height: 370px; }
+      .goal-image { height: 135px; }
+      .browser-caption { display: block; }
+      .browser-caption span { display: block; margin-top: 4px; }
+    }
+
+    @media (max-width: 760px) {
+      body { overflow: auto; }
+      .deck-top { height: 55px; padding-inline: 14px; background: rgba(248,252,255,.92); backdrop-filter: blur(12px); }
+      .deck-brand small, .deck-counter { display: none; }
+      .fullscreen-button { padding: 7px 10px; }
+      .deck { display: block; }
+      .slide, .slide.active, .slide.leaving-left { position: relative; inset: auto; min-height: 100svh; padding: 78px 17px 92px; opacity: 1; transform: none; pointer-events: auto; overflow: visible; }
+      .slide-image-page, .slide-image-page.active, .slide-image-page.leaving-left { padding: 64px 10px 92px; }
+      .slide-image-frame { width: 100%; height: auto; min-height: calc(100svh - 156px); }
+      .slide-image-frame img { position: static; width: 100%; height: auto; max-height: calc(100svh - 170px); border-radius: 10px; }
+      .slide-inner { width: 100%; }
+      .time-chip { position: static; display: inline-flex; margin-bottom: 8px; }
+      .slide-title, .cover .slide-title { font-size: clamp(36px, 12vw, 56px); }
+      .cover-grid, .two-column, .mechanism-layout, .route-layout, .evidence-layout, .closing-grid { grid-template-columns: 1fr; }
+      .hero-visual, .hero-visual img { min-height: 310px; }
+      .goal-grid { grid-template-columns: 1fr; }
+      .goal-card { min-height: 0; }
+      .goal-image { height: 190px; }
+      .cal-loop { min-height: 360px; }
+      .loop-center { width: 125px; height: 125px; }
+      .loop-item { width: 105px; }
+      .support-strip { grid-template-columns: 1fr; }
+      .screenshot-pair { grid-template-columns: 1fr; }
+      .closing-visual { height: 330px; }
+      .deck-nav { bottom: 9px; width: calc(100% - 18px); justify-content: space-between; }
+      .deck-dots { display: none; }
+      .nav-button { min-width: 0; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; animation-duration: .01ms !important; }
+    }
+  </style>
+</head>
+<body>
+  <div class="deck-shell">
+    <div class="deck-progress" aria-hidden="true"><span id="progress-bar"></span></div>
+    <header class="deck-top">
+      <div class="deck-brand">
+        <span class="deck-brand-mark" aria-hidden="true">IF</span>
+        <span><strong>智慧乐园票价公约</strong><small>8分钟项目汇报</small></span>
+      </div>
+      <div class="deck-tools">
+        <span class="deck-counter" id="deck-counter">01 / 07</span>
+        <button class="fullscreen-button" id="fullscreen-button" type="button">全屏展示</button>
+      </div>
+    </header>
+
+    <main class="deck" id="deck" aria-live="polite">
+      <section class="slide cover active" data-title="封面" data-duration="25秒">
+        <div class="slide-inner cover-grid">
+          <div>
+            <span class="time-chip">建议用时 25秒</span>
+            <span class="slide-kicker">CROSS-DISCIPLINARY CAL PROJECT</span>
+            <h1 class="slide-title">智慧乐园<em>票价公约</em></h1>
+            <p class="slide-subtitle">把生活中的票价规则，转化为计算机能执行、游客能看懂、经得起数据检验的公共规则。</p>
+            <div class="cover-tags"><span>小学五年级</span><span>3×40分钟</span><span>信息科技＋数学＋公共责任</span></div>
+          </div>
+          <div class="hero-visual">
+            <!-- AI-IMAGE-PLACEHOLDER: cover-hero -->
+            <img src="assets/intro-images/cover-hero.webp" data-fallback="assets/images/smart-ticket-park.png" alt="智慧乐园售票站项目主视觉">
+          </div>
+        </div>
+      </section>
+
+      <section class="slide slide-image-page" data-title="教学内容设计" data-duration="30秒">
+        <div class="slide-image-frame">
+          <img src="assets/intro-slides/slide-2-content.png" alt="教学内容设计：课程定位、核心知识内容与学习路径">
+        </div>
+      </section>
+
+      <section class="slide slide-image-page" data-title="教学重难点" data-duration="35秒">
+        <div class="slide-image-frame">
+          <img src="assets/intro-slides/slide-3-focus.png" alt="教学重难点：分支结构、流程图与代码、边界值、多条件优先级和跨学科整合">
+        </div>
+      </section>
+
+      <section class="slide slide-image-page" data-title="教学目标设计" data-duration="40秒">
+        <div class="slide-image-frame">
+          <img src="assets/intro-slides/slide-4-goals.png" alt="教学目标设计：信息科技核心素养、跨学科目标与评价对应">
+        </div>
+      </section>
+
+      <section class="slide" data-title="课程结构" data-duration="40秒">
+        <div class="slide-inner">
+          <span class="time-chip">建议用时 40秒</span>
+          <span class="slide-kicker">3 LESSONS · 4 STAGES</span>
+          <h2 class="slide-title">从理解规则，到修订公共规则</h2>
+          <div class="route-layout">
+            <div class="lesson-route">
+              <article class="route-step" style="--route-color:#ff8a4c"><span>1</span><div><strong>情境导入</strong><small>在闸机游戏中识别条件、路径和结果。</small></div><em>第1课时</em></article>
+              <article class="route-step" style="--route-color:#3978f6"><span>2</span><div><strong>新知讲解</strong><small>建立流程图、if/else代码与执行路径的联系。</small></div><em>第1课时</em></article>
+              <article class="route-step" style="--route-color:#ffb633"><span>3</span><div><strong>跨学科探究</strong><small>用边界值、收入差异和游客案例检验规则。</small></div><em>第2课时</em></article>
+              <article class="route-step" style="--route-color:#4f7c68"><span>4</span><div><strong>项目评价</strong><small>小组完成票价公约，个人完成小测、自评和反思。</small></div><em>第2—3课时</em></article>
+            </div>
+            <div class="screenshot-pair">
+              <figure class="browser-frame"><div class="browser-bar"><i></i><i></i><i></i><span>第4关</span></div><img src="assets/intro-screenshots/level4-rule-lab.png" data-fallback="report_build/assets/fig6-4-boundary-review.jpg" alt="跨学科规则检验实验室截图"><figcaption class="browser-caption"><strong>探究证据</strong><span>边界、收入与公平</span></figcaption></figure>
+              <figure class="browser-frame"><div class="browser-bar"><i></i><i></i><i></i><span>第5关</span></div><img src="assets/intro-screenshots/level5-project.png" data-fallback="report_build/assets/fig6-3-stage-task.jpg" alt="智慧乐园票价公约项目实验室截图"><figcaption class="browser-caption"><strong>项目脚手架</strong><span>设计—计算—说明—修订</span></figcaption></figure>
+              <div class="route-art"><!-- AI-IMAGE-PLACEHOLDER: course-route --><img src="assets/intro-images/course-route.webp" data-fallback="assets/images/stages/stage-intro.webp" alt="四阶段课程路线插图"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="slide" data-title="成果与评价" data-duration="40秒">
+        <div class="slide-inner">
+          <span class="time-chip">建议用时 40秒</span>
+          <span class="slide-kicker">EVIDENCE + ASSESSMENT</span>
+          <h2 class="slide-title">评价学生如何用证据改进方案</h2>
+          <div class="evidence-layout">
+            <div>
+              <div class="evidence-chain" aria-label="证据链"><span>算法运行结果</span><span>数学统计</span><span>公平案例</span><span>同伴反例</span><span>修订记录</span><span>教师诊断</span></div>
+              <div class="score-bar" aria-label="100分评价比例"><span>信息科技 60</span><span>数学 25</span><span>责任 15</span></div>
+              <p class="thesis">最终成果不是一条优惠规则，而是一份可运行、可计算、可解释、可修订的“票价公约方案包”。</p>
+              <div class="evaluation-art"><!-- AI-IMAGE-PLACEHOLDER: evaluation-loop --><img src="assets/intro-images/evaluation-loop.webp" data-fallback="assets/images/stages/stage-summary.webp" alt="评价与教师诊断插图"></div>
+            </div>
+            <div class="screenshot-pair">
+              <figure class="browser-frame"><div class="browser-bar"><i></i><i></i><i></i><span>项目评价</span></div><img src="assets/intro-screenshots/evaluation.png" data-fallback="report_build/assets/fig6-6-resource-eval-performance.jpg" alt="学习评价页面截图"><figcaption class="browser-caption"><strong>个人理解</strong><span>小测、自评与反思</span></figcaption></figure>
+              <figure class="browser-frame"><div class="browser-bar"><i></i><i></i><i></i><span>教师视角</span></div><img src="assets/intro-screenshots/teacher-dashboard.png" data-fallback="report_build/assets/fig6-8-tour-live2d.jpg" alt="教师跨学科数据仪表盘截图"><figcaption class="browser-caption"><strong>班级诊断</strong><span>五类跨学科指标</span></figcaption></figure>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="slide closing" data-title="进入演示" data-duration="10秒">
+        <div class="slide-inner closing-grid">
+          <div>
+            <span class="time-chip">建议用时 10秒</span>
+            <span class="slide-kicker">LIVE WEBSITE TOUR</span>
+            <h2 class="slide-title">接下来，沿一名学生的学习路径看证据如何形成</h2>
+            <p class="slide-subtitle">从分支判断，到用算法、数学和公平设计一份票价公约。</p>
+            <a class="enter-button" href="index.html?presentation=1">进入10步网站高亮演示 <span aria-hidden="true">→</span></a>
+          </div>
+          <div class="closing-visual">
+            <!-- AI-IMAGE-PLACEHOLDER: ending-park -->
+            <img src="assets/intro-images/ending-park.webp" data-fallback="assets/images/stages/stage-summary.webp" alt="智慧乐园全景与项目完成场景">
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <nav class="deck-nav" aria-label="幻灯片导航">
+      <button class="nav-button" id="previous-slide" type="button">← 上一页</button>
+      <div class="deck-dots" id="deck-dots" aria-label="跳转到指定页面"></div>
+      <button class="nav-button primary" id="next-slide" type="button">下一页 →</button>
+    </nav>
+    <p class="sr-only" id="slide-announcement" aria-live="polite"></p>
+  </div>
+
+  <script>
+    (() => {
+      const slides = [...document.querySelectorAll('.slide')];
+      const progress = document.getElementById('progress-bar');
+      const counter = document.getElementById('deck-counter');
+      const announcement = document.getElementById('slide-announcement');
+      const previous = document.getElementById('previous-slide');
+      const next = document.getElementById('next-slide');
+      const dots = document.getElementById('deck-dots');
+      const mobileQuery = window.matchMedia('(max-width: 760px)');
+      let current = 0;
+      let touchStartX = 0;
+
+      document.querySelectorAll('img[data-fallback]').forEach(image => {
+        image.addEventListener('error', () => {
+          if (image.dataset.fallbackUsed === 'true') return;
+          image.dataset.fallbackUsed = 'true';
+          image.src = image.dataset.fallback;
+        });
+      });
+
+      slides.forEach((slide, index) => {
+        const dot = document.createElement('button');
+        dot.type = 'button';
+        dot.className = `deck-dot${index === 0 ? ' active' : ''}`;
+        dot.setAttribute('aria-label', `跳转到第${index + 1}页：${slide.dataset.title}`);
+        dot.addEventListener('click', () => go(index));
+        dots.appendChild(dot);
+      });
+
+      function render() {
+        document.body.classList.toggle('dark-slide', current === 0 || current === slides.length - 1);
+        document.body.classList.toggle('image-slide', current >= 1 && current <= 3);
+        slides.forEach((slide, index) => {
+          slide.classList.toggle('active', index === current);
+          slide.classList.toggle('leaving-left', !mobileQuery.matches && index < current);
+          slide.setAttribute('aria-hidden', mobileQuery.matches ? 'false' : String(index !== current));
+        });
+        [...dots.children].forEach((dot, index) => dot.classList.toggle('active', index === current));
+        progress.style.width = `${((current + 1) / slides.length) * 100}%`;
+        counter.textContent = `${String(current + 1).padStart(2, '0')} / ${String(slides.length).padStart(2, '0')}`;
+        previous.disabled = current === 0;
+        next.textContent = current === slides.length - 1 ? '进入演示 →' : '下一页 →';
+        announcement.textContent = `第${current + 1}页，共${slides.length}页：${slides[current].dataset.title}`;
+      }
+
+      function go(index) {
+        const target = Math.max(0, Math.min(slides.length - 1, index));
+        current = target;
+        render();
+        if (mobileQuery.matches) slides[current].scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+
+      previous.addEventListener('click', () => go(current - 1));
+      next.addEventListener('click', () => {
+        if (current === slides.length - 1) window.location.href = 'index.html?presentation=1';
+        else go(current + 1);
+      });
+
+      document.getElementById('fullscreen-button').addEventListener('click', async () => {
+        try {
+          if (document.fullscreenElement) await document.exitFullscreen();
+          else await document.documentElement.requestFullscreen();
+        } catch { /* Fullscreen is optional in file previews. */ }
+      });
+
+      document.addEventListener('keydown', event => {
+        const target = event.target;
+        if (target instanceof HTMLInputElement || target instanceof HTMLTextAreaElement || target instanceof HTMLSelectElement) return;
+        if (event.key === 'ArrowRight' || event.key === 'PageDown' || event.key === ' ') { event.preventDefault(); go(current + 1); }
+        if (event.key === 'ArrowLeft' || event.key === 'PageUp') { event.preventDefault(); go(current - 1); }
+        if (event.key === 'Home') { event.preventDefault(); go(0); }
+        if (event.key === 'End') { event.preventDefault(); go(slides.length - 1); }
+        if (event.key.toLowerCase() === 'f') document.getElementById('fullscreen-button').click();
+      });
+
+      document.addEventListener('touchstart', event => { touchStartX = event.changedTouches[0].clientX; }, { passive: true });
+      document.addEventListener('touchend', event => {
+        if (mobileQuery.matches) return;
+        const distance = event.changedTouches[0].clientX - touchStartX;
+        if (Math.abs(distance) > 55) go(distance < 0 ? current + 1 : current - 1);
+      }, { passive: true });
+
+      if ('IntersectionObserver' in window) {
+        const observer = new IntersectionObserver(entries => {
+          if (!mobileQuery.matches) return;
+          const visible = entries.filter(entry => entry.isIntersecting).sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0];
+          if (!visible) return;
+          current = slides.indexOf(visible.target);
+          render();
+        }, { threshold: [.55, .75] });
+        slides.forEach(slide => observer.observe(slide));
+      }
+
+      mobileQuery.addEventListener?.('change', render);
+      render();
+    })();
+  </script>
+</body>
+</html>

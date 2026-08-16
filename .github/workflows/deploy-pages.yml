@@ -29,7 +29,9 @@ jobs:
         shell: bash
         run: |
           mkdir -p _site
-          cp index.html styles.css app.js config.js learning-model.js \
+          cp index.html intro.html styles.css app.js config.js learning-model.js \
+            cross-disciplinary-lab.js rule-lab.js \
+            level1-canvas.js level2-canvas.js level3-canvas.js \
             ticket-game.js teacher-dashboard.js performance-dashboard.js \
             live2d-assistant.js usage-tour.js _site/
           cp -R assets _site/assets

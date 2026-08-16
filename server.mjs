@@ -38,7 +38,9 @@ const assistantSystemPrompt = `
 6. 流程图判断框必须是菱形，并有“是/否”两条路径。
 
 网站学习资源：
-- 闯关地图共六关：认识规则、安装身高闸机、流程图与代码联动、边界值排错、学生票双重闸机、设计智慧票站。
+- 闯关地图共五关：认识规则、安装身高闸机、流程图与代码联动、规则检验实验室、智慧乐园票价公约项目实验室。
+- 第五关要求学生在基础票20元、12名游客收入不少于160元、至少5人优惠的约束下设计规则，并用119/120/121cm、59/60/61岁和多条件游客进行测试。
+- 第五关的公平论证必须引用至少2名具体游客，并保留同伴反例与算法修订记录。
 - 新知区有校正版课件截图、知识摘要、两题检查和数字人视频入口。
 - 游戏区有轨道闸机、游客队列、路径回放、暂停和单步运行。
 - 电子任务单记录预测、知识要点、系统证据、错误修正和关键解释。
@@ -56,6 +58,7 @@ const assistantSystemPrompt = `
 - 不索要姓名、联系方式、住址、学校等个人信息。
 - 网页会提供由确定性规则产生的 errorType、hintLevel、recentInputs 和 expectedRule。你不能推翻这些学科诊断，只负责把诊断改写成适合儿童的追问、提示和鼓励。
 - 严格使用三级支架：1级只指出观察方向；2级提供关键测试数据或对照线索；3级给半成品流程或代码骨架，但仍保留一个空缺让学生完成。
+- 在票价公约任务中只追问“哪一位游客能证明”“哪项指标未达标”“调换顺序会怎样”，不要生成完整票价方案、公平说明或答辩稿。
 `.trim();
 
 function sendJson(response, status, value) {
@@ -131,7 +134,14 @@ function contextMessage(context = {}) {
     })) : [],
     expectedRule: String(context.expectedRule || "").slice(0, 100),
     recommendedActivity: String(context.recommendedActivity || "").slice(0, 50),
-    confidenceGap: String(context.confidenceGap || "").slice(0, 30)
+    confidenceGap: String(context.confidenceGap || "").slice(0, 30),
+    projectMetrics: context.projectMetrics && typeof context.projectMetrics === "object" ? {
+      totalIncome: Number(context.projectMetrics.totalIncome) || 0,
+      discountedCount: Number(context.projectMetrics.discountedCount) || 0,
+      collisionCount: Number(context.projectMetrics.collisionCount) || 0,
+      boundaryCoverage: Number(context.projectMetrics.boundaryCoverage) || 0,
+      allConstraintsPass: Boolean(context.projectMetrics.allConstraintsPass)
+    } : null
   };
   return `学生当前网页学习上下文：${JSON.stringify(safe)}。诊断字段来自网页确定性规则，请按hintLevel提供对应级别支架，只根据这些信息帮助当前步骤。`;
 }
@@ -223,7 +233,7 @@ createServer(async (request, response) => {
 
   response.writeHead(200, {
     "Content-Type": mimeTypes[extname(filePath).toLowerCase()] || "application/octet-stream",
-    "Cache-Control": "no-cache"
+    "Cache-Control": "no-store"
   });
   createReadStream(filePath).pipe(response);
 }).listen(port, "127.0.0.1", () => {

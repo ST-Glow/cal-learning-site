@@ -1,6 +1,6 @@
 (function () {
-  const TOTAL_LEVELS = 6;
-  const TOTAL_STARS = 18;
+  const TOTAL_LEVELS = 5;
+  const TOTAL_STARS = 15;
   const TOTAL_QUIZ = 5;
   const masteryLabels = {
     branch: "双分支判断",
@@ -95,7 +95,7 @@
   }
 
   function learningHighlight(record, data) {
-    if (data.stars >= 16) return "闯关星星收集很出色";
+    if (data.stars >= 13) return "闯关星星收集很出色";
     if (data.quizScore >= 4) return "知识测验掌握扎实";
     if (data.thinking >= 4) return "思考记录认真完整";
     if (data.completed >= 5) return "坚持完成学习任务";
@@ -104,7 +104,7 @@
 
   function encouragement(data) {
     const remaining = TOTAL_LEVELS - data.completed;
-    if (!remaining) return "六项任务已完成，继续挑战迁移应用徽章。";
+    if (!remaining) return "五项任务已完成，继续挑战迁移应用徽章。";
     if (remaining === 1) return "距离下一枚完成徽章还差 1 个任务，继续加油！";
     return `再完成 ${remaining} 个任务即可点亮完整学习路线。`;
   }

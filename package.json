@@ -1,4 +1,8 @@
 {
   "private": true,
-  "type": "module"
+  "type": "module",
+  "scripts": {
+    "test": "node --test tests/*.test.mjs",
+    "check": "node --check cross-disciplinary-lab.js && node --check rule-lab.js && node --check level1-canvas.js && node --check level2-canvas.js && node --check level3-canvas.js && node --check learning-model.js && node --check ticket-game.js && node --check teacher-dashboard.js && node --check app.js && node --check server.mjs"
+  }
 }

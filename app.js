@@ -4,17 +4,15 @@ const levelMeta = [
   { id: 1, title: "认识售票规则", subtitle: "帮助游客选对岔道", color: "#ff8a4c" },
   { id: 2, title: "安装身高闸机", subtitle: "配置菱形判断闸机", color: "#3978f6" },
   { id: 3, title: "智能闸机联动", subtitle: "让轨道和代码同步", color: "#7567e8" },
-  { id: 4, title: "边界值故障排查", subtitle: "用测试找到错误", color: "#16a085" },
-  { id: 5, title: "学生票双重闸机", subtitle: "理解顺序与嵌套", color: "#ef5da8" },
-  { id: 6, title: "设计我的智慧票站", subtitle: "完成小组最终任务", color: "#ffb000" }
+  { id: 4, title: "规则检验实验室", subtitle: "用边界值、收入与公平证据检验规则", color: "#16a085" },
+  { id: 5, title: "智慧乐园票价公约", subtitle: "用算法、数学与公平证据完成方案", color: "#ffb000" }
 ];
 
 const phaseMeta = [
   { id: 1, title: "情境导入", subtitle: "领取售票员任务", icon: "🎟", color: "#ff6b6b", image: "assets/images/stages/stage-intro.webp", levels: [1] },
   { id: 2, title: "新知讲解", subtitle: "探索流程与代码", icon: "📖", color: "#29a4d9", image: "assets/images/stages/stage-knowledge.webp", levels: [2, 3] },
-  { id: 3, title: "实践探究", subtitle: "测试并升级规则", icon: "🔬", color: "#ffb633", image: "assets/images/stages/stage-practice.webp", levels: [4, 5] },
-  { id: 4, title: "学习拓展", subtitle: "设计创意优惠", icon: "🧩", color: "#71bb48", image: "assets/images/stages/stage-extension.webp", levels: [6] },
-  { id: 5, title: "总结评价", subtitle: "挑战测验领证书", icon: "🏅", color: "#7567e8", image: "assets/images/stages/stage-summary.webp", levels: [] }
+  { id: 3, title: "跨学科探究", subtitle: "用实验与数学证据检验规则", icon: "🔬", color: "#ffb633", image: "assets/images/stages/stage-practice.webp", levels: [4] },
+  { id: 4, title: "项目评价", subtitle: "设计·检验·反思", icon: "✓", color: "#4f7c68", image: "assets/images/stages/stage-extension.webp", levels: [5] }
 ];
 
 const knowledgeSegments = {
@@ -63,9 +61,8 @@ const worksheetPrompts = [
   "闸机根据什么信息选择轨道？",
   "为什么菱形必须有“是/否”两条路径？",
   "流程图菱形与代码 if 有什么关系？",
-  "为什么必须测试 120cm？",
-  "为什么先判断身高，再判断学生证？",
-  "你的新优惠规则为什么公平？"
+  "120cm 和判断顺序怎样影响票价与公平？",
+  "哪一条数学证据或同伴质疑改变了你的算法？"
 ];
 
 function emptyKnowledgeSegment() {
@@ -88,9 +85,9 @@ const defaultState = {
     level2: { nodes: {} },
     level3: { height: 116, prediction: "", result: "", codeComplete: false },
     level4: { program: "", explanation: "", tests: [] },
-    level5: { order: ["height", "student"], indent: [], visitorResults: [] },
     task: { offer: "", price: "", condition: "", order: "", fairness: "", pseudocode: "", members: "", roles: "", tests: [] }
   },
+  lab: {},
   quiz: {},
   quizSubmitted: false,
   quizScore: 0,
@@ -113,11 +110,12 @@ const defaultState = {
     filter: "all",
     entries: {
       1: emptyWorksheetEntry(), 2: emptyWorksheetEntry(), 3: emptyWorksheetEntry(),
-      4: emptyWorksheetEntry(), 5: emptyWorksheetEntry(), 6: emptyWorksheetEntry()
+      4: emptyWorksheetEntry(), 5: emptyWorksheetEntry()
     }
   },
   learnerModel: null,
   inquiry: {},
+  project: null,
   introSeen: false
 };
 
@@ -152,10 +150,30 @@ function deepMerge(target, source) {
 
 function migrateLearningState() {
   LearningModel.ensure(state);
+  state.project = CrossDisciplinaryLab.ensureProjectState(state.project);
+  if (window.RuleLab) window.RuleLab.ensureLab(state);
   state.knowledge = deepMerge(structuredClone(defaultState.knowledge), state.knowledge || {});
   state.worksheet = deepMerge(structuredClone(defaultState.worksheet), state.worksheet || {});
-  state.worksheet.version = 3;
-  for (let level = 1; level <= 6; level += 1) {
+  state.worksheet.version = 4;
+  if (Array.isArray(state.completed)) {
+    state.completed = [...new Set(state.completed.map(id => {
+      const num = Number(id);
+      if (num === 5) return 4;
+      if (num === 6) return 5;
+      return num;
+    }).filter(num => Number.isInteger(num) && num >= 1 && num <= 5))].sort((a, b) => a - b);
+  }
+  if (Number(state.currentLevel) === 6) state.currentLevel = 5;
+  else if (Number(state.currentLevel) === 5) state.currentLevel = 4;
+  if (state.worksheet?.entries) {
+    const old5 = state.worksheet.entries[5];
+    const old6 = state.worksheet.entries[6];
+    if (old5 && !state.worksheet.entries[4]) state.worksheet.entries[4] = old5;
+    if (old6) state.worksheet.entries[5] = old6;
+    else delete state.worksheet.entries[5];
+    delete state.worksheet.entries[6];
+  }
+  for (let level = 1; level <= 5; level += 1) {
     const entry = state.worksheet.entries[level] || (state.worksheet.entries[level] = emptyWorksheetEntry());
     const mission = state.game.missions[level];
     if (!entry.explanation && mission.review) entry.explanation = mission.review;
@@ -248,8 +266,39 @@ function switchPage(page, options = {}) {
   if (page === "teacher") renderTeacherDashboard();
   if (page === "performance") renderPerformanceDashboard();
   updateAssistantContext();
-  saveState();
+  if (!options.transient) saveState();
   window.scrollTo({ top: 0, behavior: options.instant ? "auto" : "smooth" });
+}
+
+function capturePresentationState() {
+  return {
+    page: state.currentPage || "home",
+    level: Number(state.currentLevel) || 1,
+    activeViews: { ...(state.knowledge?.activeViews || {}) },
+    projectStep: Number(state.project?.activeStep) || 1
+  };
+}
+
+function navigatePresentation(step = {}) {
+  const page = step.page || "home";
+  if (page === "map" && step.level) {
+    const level = Number(step.level);
+    state.currentLevel = level;
+    if (step.view && state.knowledge?.activeViews) state.knowledge.activeViews[level] = step.view;
+    if (level === 5 && step.projectStep && state.project) {
+      state.project.activeStep = Math.min(4, Math.max(1, Number(step.projectStep)));
+    }
+  }
+  switchPage(page, { instant: true, level: step.level, transient: true });
+}
+
+function restorePresentationState(snapshot, options = {}) {
+  if (!snapshot) return;
+  state.currentLevel = Number(snapshot.level) || 1;
+  if (state.knowledge) state.knowledge.activeViews = { ...(snapshot.activeViews || {}) };
+  if (state.project) state.project.activeStep = Number(snapshot.projectStep) || 1;
+  const destination = options.returnHome ? "home" : (snapshot.page || "home");
+  switchPage(destination, { instant: true, level: state.currentLevel, transient: true });
 }
 
 function updateGlobalUI() {
@@ -265,7 +314,7 @@ function updateGlobalUI() {
 
 function renderHomeRoute() {
   const container = document.getElementById("home-route-preview");
-  container.innerHTML = levelMeta.slice(0, 5).map(level => {
+  container.innerHTML = levelMeta.map(level => {
     const complete = state.completed.includes(level.id);
     return `
       <article class="route-card ${complete ? "complete" : ""}" style="--level-color:${level.color}" tabindex="0" role="button" data-open-level="${level.id}">
@@ -291,7 +340,7 @@ function renderRecommendations(targetId, placement) {
     <div class="adaptive-list">
       ${recommendations.map(item => `
         <button type="button" data-recommend-level="${item.level}" class="${item.tone || "review"}">
-          <span>${item.level === 6 ? "拓展" : `第${item.level}关`}</span>
+          <span>${item.level === 5 ? "项目" : `第${item.level}关`}</span>
           <strong>${escapeHtml(item.title)}</strong>
           <small>${escapeHtml(item.reason)}</small>
           <b>开始练习 →</b>
@@ -311,10 +360,11 @@ function showRecommendationReason() {
 }
 
 function renderMap() {
+  document.body.dataset.currentLevel = String(state.currentLevel);
   const phase = phaseForLevel(state.currentLevel);
   document.getElementById("level-sidebar").innerHTML = phaseMeta.map(item => {
-    const phaseComplete = item.id === 5
-      ? state.certificate
+    const phaseComplete = item.id === 4
+      ? state.completed.includes(5) && state.quizSubmitted
       : item.levels.length > 0 && item.levels.every(level => state.completed.includes(level));
     return `
       <button class="level-tab ${phase.id === item.id ? "active" : ""} ${phaseComplete ? "complete" : ""}" data-phase="${item.id}" style="--phase-color:${item.color}">
@@ -327,24 +377,42 @@ function renderMap() {
   document.getElementById("player-kicker").textContent = `STAGE ${String(phase.id).padStart(2, "0")}`;
   document.getElementById("player-phase-title").textContent = phase.title;
   document.getElementById("player-level-title").textContent = levelMeta[state.currentLevel - 1].title;
-  document.getElementById("substep-tabs").innerHTML = phase.levels.map((levelId, index) => {
+  const learningTabs = phase.levels.map((levelId, index) => {
     const level = levelMeta[levelId - 1];
     return `<button class="substep-tab ${state.currentLevel === levelId ? "active" : ""} ${state.completed.includes(levelId) ? "complete" : ""}" data-level="${levelId}">
-      <span>${index + 1}</span>${level.title}${state.completed.includes(levelId) ? " ✓" : ""}
+      <span>${index + 1}</span>${phase.id === 4 ? "小组项目" : level.title}${state.completed.includes(levelId) ? " ✓" : ""}
     </button>`;
   }).join("");
+  const evaluationTab = phase.id === 4
+    ? `<button class="substep-tab ${state.quizSubmitted ? "complete" : ""}" data-open-final-evaluation><span>2</span>个人评价${state.quizSubmitted ? " ✓" : ""}</button>`
+    : "";
+  document.getElementById("substep-tabs").innerHTML = learningTabs + evaluationTab;
   document.getElementById("stage-dots").innerHTML = phaseMeta.map(item => `<span class="${item.id === phase.id ? "active" : ""}" style="--dot-color:${item.color}"></span>`).join("");
   renderRecommendations("map-recommendations", "map");
 
-  const learningSegment = knowledgeSegments[state.currentLevel];
+  // Level 5 is now the merged project-and-evaluation stage. It should open
+  // directly to the student project instead of being hidden behind the old
+  // nested-branch lesson tabs.
+  const learningSegment = state.currentLevel === 5 ? null : knowledgeSegments[state.currentLevel];
   const activeView = learningSegment ? state.knowledge.activeViews[state.currentLevel] || "learn" : "challenge";
   const levelContent = learningSegment
     ? renderLearningLevel(state.currentLevel, activeView)
     : renderChallenge(state.currentLevel);
-  document.getElementById("level-stage").innerHTML = lessonShell(levelMeta[state.currentLevel - 1], levelContent);
+  const levelStage = document.getElementById("level-stage");
+  levelStage.innerHTML = lessonShell(levelMeta[state.currentLevel - 1], levelContent);
+  // Switching from a long knowledge page to a game used to preserve the old
+  // inner scroll offset, so the challenge appeared halfway down the canvas.
+  levelStage.scrollTop = 0;
   document.getElementById("previous-stage").disabled = state.currentLevel === 1;
-  document.getElementById("next-stage").textContent = state.currentLevel === 6 ? "进入总结评价 →" : "下一站 →";
+  document.getElementById("next-stage").textContent = state.currentLevel === 5 ? "完成个人评价 →" : "下一站 →";
   attachLevelHandlers();
+  requestAnimationFrame(() => {
+    const game = levelStage.querySelector(".ticket-game");
+    if (!game) return;
+    const stageBox = levelStage.getBoundingClientRect();
+    const gameBox = game.getBoundingClientRect();
+    levelStage.scrollTop = Math.max(0, levelStage.scrollTop + gameBox.top - stageBox.top - 10);
+  });
 }
 
 function renderLearningLevel(level, activeView) {
@@ -367,7 +435,9 @@ function renderLearningLevel(level, activeView) {
 }
 
 function renderChallenge(level) {
-  return `${[4, 5].includes(Number(level)) ? renderInquiryPanel(Number(level)) : ""}${TicketGame.render(level, state)}`;
+  if (Number(level) === 5) return renderProjectLab();
+  if (Number(level) === 4 && window.RuleLab) return window.RuleLab.render(state, state.game.missions[4]);
+  return TicketGame.render(level, state);
 }
 
 function renderInquiryPanel(level) {
@@ -375,12 +445,13 @@ function renderInquiryPanel(level) {
   const content = level === 4 ? {
     question: "为什么120cm最容易暴露条件芯片的错误？",
     prediction: "先预测：程序A（<120）和程序B（≤120）中，哪一个符合规则？",
-    transfer: "如果规则改成“年龄低于12岁享受儿童票”，你会测试哪些数据？"
+    transfer: "如果规则写错，120cm的游客可能多付或少付多少钱？怎样用测试数据证明规则公平？"
   } : {
-    question: "为什么要先判断身高，再判断学生证？",
+    question: "为什么判断顺序会改变票价和收入？哪一种顺序更公平？",
     prediction: "先预测：116cm且有学生证的游客，应该优先获得哪一种票？",
-    transfer: "如果再加入老人票，你准备把年龄判断放在什么位置？"
+    transfer: "如果加入老人票，怎样用收入和公平证据决定判断顺序？"
   };
+  const orderComparison = level === 5 ? renderOrderComparison() : "";
   return `
     <section class="inquiry-lab" data-inquiry-level="${level}">
       <div class="inquiry-heading">
@@ -403,7 +474,23 @@ function renderInquiryPanel(level) {
           <textarea rows="3" data-inquiry-field="transfer" placeholder="修改后的规则或新的测试方法">${escapeHtml(inquiry.transfer)}</textarea>
         </label>
       </div>
+      ${orderComparison}
     </section>`;
+}
+
+function renderOrderComparison() {
+  const comparisons = CrossDisciplinaryLab.compareBaselineOrders();
+  return `<div class="order-comparison">
+    <div class="record-zone-title"><span>¥</span><div><strong>顺序会改变谁享受哪种优惠</strong><small>同一组游客、同一组票价，只改变判断顺序</small></div></div>
+    <div class="order-comparison-grid">
+      ${comparisons.map(item => `<article>
+        <h4>${item.label}</h4>
+        <strong>总收入 ${item.metrics.totalIncome} 元</strong>
+        <p>${item.results.map(result => `${escapeHtml(result.visitor.name)}：${result.ticketLabel}${result.price}元`).join("；")}</p>
+      </article>`).join("")}
+    </div>
+    <p class="comparison-note">观察“妹妹（116cm且有学生证）”的票种是否改变，再解释哪一种顺序更符合先处理儿童优惠的规则。</p>
+  </div>`;
 }
 
 function inquiryExperimentMarkup(level) {
@@ -496,7 +583,7 @@ function lessonShell(level, content) {
           <h2>${level.title}</h2>
           <p>${level.subtitle}</p>
         </div>
-        <div class="lesson-badge" style="background:${level.color}">${level.id === 6 ? "GO" : `0${level.id}`}</div>
+        <div class="lesson-badge" style="background:${level.color}">${level.id === 5 ? "GO" : `0${level.id}`}</div>
       </header>
       ${content}
     </article>`;
@@ -721,64 +808,181 @@ function ticketFor(height, hasStudentCard) {
   return hasStudentCard ? "学生票" : "全价票";
 }
 
-function renderFinalTask() {
-  const task = state.answers.task;
-  const tests = task.tests.length ? task.tests : [{input:"",expected:""},{input:"",expected:""},{input:"",expected:""}];
-  return lessonShell(levelMeta[5], `
-    <div class="instruction-box"><strong>最终任务：</strong>在原有规则上增加一种优惠。先说明规则和顺序，再写伪代码，并用至少三组数据测试。</div>
-    <div class="task-builder">
-      <form class="task-form" id="creative-task-form">
-        <div class="two-columns">
-          <label>新增优惠对象<input name="offer" value="${escapeHtml(task.offer)}" placeholder="例如：老人票" required></label>
-          <label>票价或折扣<input name="price" value="${escapeHtml(task.price)}" placeholder="例如：半价" required></label>
-        </div>
-        <label>判断条件<input name="condition" value="${escapeHtml(task.condition)}" placeholder="例如：年龄达到 60 岁" required></label>
-        <label>判断顺序<textarea name="order" rows="2" placeholder="先判断什么，再判断什么？" required>${escapeHtml(task.order)}</textarea></label>
-        <label>公平性说明<textarea name="fairness" rows="2" placeholder="为什么这样设计是合理的？" required>${escapeHtml(task.fairness)}</textarea></label>
-        <label>伪代码<textarea name="pseudocode" rows="7" placeholder="如果……&#10;    输出……&#10;否则……" required>${escapeHtml(task.pseudocode)}</textarea></label>
-        <div class="two-columns">
-          <label>小组成员<input name="members" value="${escapeHtml(task.members)}" placeholder="填写成员姓名" required></label>
-          <label>任务分工<input name="roles" value="${escapeHtml(task.roles)}" placeholder="规则、流程图、测试……" required></label>
-        </div>
-        <h3>测试数据</h3>
-        <div id="task-test-rows">
-          ${tests.map((row, i) => testRow(row, i)).join("")}
-        </div>
-        <button class="secondary-button" type="button" id="add-test-row">+ 增加测试</button>
-        <button class="primary-button full-width" type="submit" style="margin-top:14px">生成作品摘要并提交</button>
-      </form>
-      <div class="task-preview">
-        <div class="summary-ticket" id="task-summary">
-          <span class="eyebrow">GROUP PROJECT</span>
-          <h3>${task.offer ? escapeHtml(task.offer) : "等待设计创意优惠"}</h3>
-          <dl>
-            <dt>票价</dt><dd>${task.price ? escapeHtml(task.price) : "—"}</dd>
-            <dt>条件</dt><dd>${task.condition ? escapeHtml(task.condition) : "—"}</dd>
-            <dt>判断顺序</dt><dd>${task.order ? escapeHtml(task.order) : "—"}</dd>
-            <dt>公平性</dt><dd>${task.fairness ? escapeHtml(task.fairness) : "—"}</dd>
-            <dt>小组成员</dt><dd>${task.members ? escapeHtml(task.members) : "—"}</dd>
-          </dl>
-        </div>
+function renderProjectLab() {
+  const project = CrossDisciplinaryLab.ensureProjectState(state.project);
+  state.project = project;
+  const preview = CrossDisciplinaryLab.evaluatePolicy(project.policy);
+  const evaluation = project.datasetResults.length ? {
+    results: project.datasetResults,
+    metrics: project.metrics,
+    constraints: preview.constraints
+  } : preview;
+  const acceptance = CrossDisciplinaryLab.projectAcceptance(project);
+  const activeStep = Math.min(4, Math.max(1, Number(project.activeStep) || 1));
+  const stepDone = {
+    1: project.datasetResults.length === 12,
+    2: project.mathEvidence.calculation.trim().length >= 12,
+    3: project.fairnessEvidence.caseIds.length >= 2 && project.fairnessEvidence.principle.trim().length >= 8,
+    4: project.revisions.length >= 1 && project.personalReflection.trim().length >= 8
+  };
+  const stepLabels = ["设计规则", "数学检查", "公平说明", "同伴修改与评价"];
+  return `
+    <section class="project-brief student-project-brief" aria-labelledby="project-driving-question">
+      <div>
+        <span class="eyebrow">四人小组任务</span>
+        <h3 id="project-driving-question">怎样制定一套计算机能执行、游客能看懂的票价规则？</h3>
+        <p>按四步完成。每一步只解决一个问题，页面会保存小组的答案。</p>
       </div>
-    </div>
-  `);
+      <div class="subject-evidence" aria-label="跨学科证据">
+        <span><strong>信息科技</strong>把规则写成分支算法</span>
+        <span><strong>数学</strong>计算收入和优惠人数</span>
+        <span><strong>公共责任</strong>用游客案例说明公平</span>
+      </div>
+    </section>
+    <nav class="project-step-nav" aria-label="票价公约任务步骤">
+      ${stepLabels.map((label, index) => {
+        const step = index + 1;
+        return `<button type="button" class="${activeStep === step ? "active" : ""} ${stepDone[step] ? "complete" : ""}" data-project-step="${step}"><span>${stepDone[step] ? "✓" : step}</span>${label}</button>`;
+      }).join("")}
+    </nav>
+    <form id="project-lab-form" class="project-lab-form">
+      <section class="project-lab-section project-step-panel ${activeStep === 1 ? "active" : ""}" data-project-panel="1">
+        <div class="project-section-heading"><span>1</span><div><h3>信息科技：把规则写清楚</h3><p>先选优惠，再决定票价和判断顺序。数字1表示最先判断。</p></div></div>
+        <aside class="project-scaffold">
+          <strong>本步要完成</strong>
+          <ol><li>至少启用两种优惠。</li><li>检查儿童规则是“身高 &lt; 120厘米”。</li><li>点击“运行12名游客”。</li></ol>
+          <details><summary>不会时看提示</summary><p>可以先保留儿童票10元和学生票15元，再增加一种优惠；不同规则不能使用相同的判断顺序。</p></details>
+        </aside>
+        <div class="policy-builder">
+          ${project.policy.rules.map(rule => renderPolicyRule(rule)).join("")}
+          <div class="policy-default"><strong>默认分支</strong><span>以上条件都不成立 → 全价票 20 元</span></div>
+        </div>
+        <label>决策流程与伪代码
+          <textarea name="projectPseudocode" rows="10" placeholder="系统可以生成骨架，但请根据小组方案检查和修改。">${escapeHtml(project.pseudocode || CrossDisciplinaryLab.generatePseudocode(project.policy))}</textarea>
+        </label>
+        <div class="project-actions">
+          <button type="button" class="primary-button" id="run-project-policy">运行12名游客</button>
+          <button type="button" class="secondary-button" id="generate-project-code">按当前规则生成伪代码</button>
+          <button type="button" class="secondary-button" data-project-step="2">下一步：数学检查 →</button>
+        </div>
+      </section>
+
+      <section class="project-lab-section project-step-panel math-lab ${activeStep === 2 ? "active" : ""}" data-project-panel="2">
+        <div class="project-section-heading"><span>2</span><div><h3>数学：用数字检查方案</h3><p>程序给出统计结果，小组要写出可以复核的计算过程。</p></div></div>
+        <aside class="project-scaffold">
+          <strong>先看两个数</strong>
+          <p>总收入至少160元；获得优惠的游客至少5人。红色表示还要回到第1步修改。</p>
+          <details><summary>计算句式</summary><p>“12张票的价格相加是____元，其中____人票价低于20元，所以方案____要求。”</p></details>
+        </aside>
+        <div class="project-metrics">
+          ${projectMetric("总收入", `${evaluation.metrics.totalIncome}元`, evaluation.metrics.totalIncome >= 160)}
+          ${projectMetric("优惠人数", `${evaluation.metrics.discountedCount}人`, evaluation.metrics.discountedCount >= 5)}
+          ${projectMetric("冲突案例", `${evaluation.metrics.collisionCount}人`, true, "由优先级解决")}
+          ${projectMetric("边界覆盖", `${evaluation.metrics.boundaryCoverage}%`, evaluation.metrics.boundaryCoverage === 100)}
+        </div>
+        <div class="constraint-strip">
+          ${Object.values(preview.constraints).map(item => `<span class="${item.pass ? "pass" : "fail"}">${item.pass ? "✓" : "!"} ${item.label}</span>`).join("")}
+        </div>
+        <div class="project-table-wrap">
+          <table class="project-data-table">
+            <thead><tr><th>游客</th><th>关键信息</th><th>命中规则</th><th>出票结果</th></tr></thead>
+            <tbody>${evaluation.results.map(projectResultRow).join("")}</tbody>
+          </table>
+        </div>
+        <div class="two-columns">
+          <label>我的计算<textarea name="mathCalculation" rows="3" placeholder="把12张票相加：10+15+……=____元；有____人获得优惠。">${escapeHtml(project.mathEvidence.calculation)}</textarea></label>
+          <label>比较前后方案<textarea name="mathComparison" rows="3" placeholder="修改____以后，总收入从____变成____，优惠人数从____变成____。">${escapeHtml(project.mathEvidence.comparison)}</textarea></label>
+        </div>
+        <div class="project-step-actions"><button type="button" class="secondary-button" data-project-step="1">← 返回规则</button><button type="button" class="primary-button" data-project-step="3">下一步：公平说明 →</button></div>
+      </section>
+
+      <section class="project-lab-section project-step-panel fairness-lab ${activeStep === 3 ? "active" : ""}" data-project-panel="3">
+        <div class="project-section-heading"><span>3</span><div><h3>公共责任：用案例说明公平</h3><p>不能只写“我觉得公平”，要用具体游客说明规则是否一致。</p></div></div>
+        <aside class="project-scaffold">
+          <strong>公平检查三问</strong>
+          <ol><li>同样条件的人，结果一样吗？</li><li>120厘米等边界写清楚了吗？</li><li>同时符合两项优惠时，先后顺序公开了吗？</li></ol>
+        </aside>
+        <label>我们的公平原则<textarea name="fairnessPrinciple" rows="2" placeholder="对满足相同条件的游客，我们都……；不使用与票价无关的信息。">${escapeHtml(project.fairnessEvidence.principle)}</textarea></label>
+        <fieldset class="fairness-cases"><legend>选择至少2名游客作为证据</legend>
+          ${CrossDisciplinaryLab.PUBLIC_VISITORS.map(visitor => `<label><input type="checkbox" name="fairnessCase" value="${visitor.id}" ${project.fairnessEvidence.caseIds.includes(visitor.id) ? "checked" : ""}><span>${visitor.name}<small>${visitor.focus}</small></span></label>`).join("")}
+        </fieldset>
+        <label>用案例解释冲突<textarea name="fairnessConflict" rows="3" placeholder="例如：小芽同时符合儿童和学生优惠，我们先判断____，因为____。">${escapeHtml(project.fairnessEvidence.conflictExplanation)}</textarea></label>
+        <div class="project-step-actions"><button type="button" class="secondary-button" data-project-step="2">← 返回数学检查</button><button type="button" class="primary-button" data-project-step="4">下一步：同伴修改 →</button></div>
+      </section>
+
+      <section class="project-lab-section project-step-panel audit-lab ${activeStep === 4 ? "active" : ""}" data-project-panel="4">
+        <div class="project-section-heading"><span>4</span><div><h3>综合实践：同伴挑战、修改和评价</h3><p>另一小组负责找问题，本小组根据证据修改，最后每个人完成反思。</p></div></div>
+        <aside class="project-scaffold">
+          <strong>四人分工建议</strong>
+          <p>规则员检查算法，计算员核对数据，审查员提出反例，汇报员整理理由。每个人都要能说出一条修改证据。</p>
+          <details><summary>同伴怎样提问</summary><p>不要直接给答案，可以问：“哪一位游客能证明你们的判断顺序不会产生冲突？”</p></details>
+        </aside>
+        <div class="two-columns">
+          <label>审查小组/同学<input name="auditReviewer" value="${escapeHtml(project.peerAudit.reviewer)}" placeholder="例如：第3小组"></label>
+          <label>问题类型<select name="auditIssueType"><option value="">请选择</option>${["边界不清","优先级冲突","收入不足","优惠覆盖不足","公平证据不足","计算错误"].map(value => `<option ${project.peerAudit.issueType === value ? "selected" : ""}>${value}</option>`).join("")}</select></label>
+        </div>
+        <label>同伴找到的反例<textarea name="auditCounterexample" rows="2" placeholder="例如：119厘米、60岁并持学生证的游客会得到什么票？">${escapeHtml(project.peerAudit.counterexample)}</textarea></label>
+        <label>同伴建议<textarea name="auditSuggestion" rows="2" placeholder="请重新检查____，因为这位游客同时符合____。">${escapeHtml(project.peerAudit.suggestion)}</textarea></label>
+        <div class="project-actions">
+          <button type="button" class="secondary-button" id="run-hidden-cases">运行隐藏反例</button>
+          <button type="button" class="secondary-button" id="export-audit-card">导出同伴审查卡</button>
+        </div>
+        ${project.hiddenResults.length ? `<div class="hidden-case-results"><strong>隐藏反例结果</strong>${project.hiddenResults.map(item => `<span>${escapeHtml(item.visitor.name)}：${item.ticketLabel}${item.price}元 · 命中${item.matchedRules.length}项条件</span>`).join("")}</div>` : ""}
+        <label>我们的修改理由<input name="revisionReason" value="${escapeHtml(project.revisionReason)}" placeholder="因为____的数据/质疑，我们把____改成____。"></label>
+        <button type="button" class="primary-button" id="record-project-revision">记录一次算法修订</button>
+        <div class="revision-timeline">
+          ${project.revisions.length ? project.revisions.slice().reverse().map((item, index) => `<article><strong>修订${project.revisions.length - index}</strong><p>${escapeHtml(item.reason)}</p><small>修改前：${escapeHtml(item.before)}<br>修改后：${escapeHtml(item.after)}</small></article>`).join("") : "<p>尚未记录修订。先运行初始方案，再根据数据或同伴质疑修改。</p>"}
+        </div>
+        <div class="project-final-check">
+          <h4>最后检查</h4>
+          <div class="two-columns"><label>小组成员<input name="projectMembers" value="${escapeHtml(project.members)}" placeholder="填写4位成员"></label><label>每个人的任务<input name="projectRoles" value="${escapeHtml(project.roles)}" placeholder="规则员、计算员、审查员、汇报员"></label></div>
+          <label>2分钟汇报提纲<textarea name="projectDefense" rows="3" placeholder="先说算法规则，再说数学结果，最后回应公平问题。">${escapeHtml(project.defense)}</textarea></label>
+          <label>我的个人反思<textarea name="personalReflection" rows="2" placeholder="____这条数据或质疑，让我们把____改成____。">${escapeHtml(project.personalReflection)}</textarea></label>
+        </div>
+        <div class="acceptance-checks">
+          ${Object.values(acceptance.checks).map(item => `<span class="${item.pass ? "pass" : "pending"}">${item.pass ? "✓" : "○"} ${item.label}</span>`).join("")}
+        </div>
+        <div class="project-step-actions">
+          <button type="button" class="secondary-button" data-project-step="3">← 返回公平说明</button>
+          <button type="submit" class="primary-button">提交小组方案</button>
+          <button type="button" class="secondary-button" id="open-final-check">进入个人小测与自评 →</button>
+        </div>
+      </section>
+    </form>`;
 }
 
-function testRow(row, i) {
-  return `<div class="test-row" data-test-row="${i}">
-    <input name="testInput" value="${escapeHtml(row.input)}" placeholder="输入条件" required>
-    <input name="testExpected" value="${escapeHtml(row.expected)}" placeholder="预期票种" required>
-    <button type="button" class="remove-row" aria-label="删除测试数据">×</button>
-  </div>`;
+function renderPolicyRule(rule) {
+  const meta = CrossDisciplinaryLab.RULE_META[rule.id];
+  const numeric = ["child", "elder"].includes(rule.id);
+  const operators = rule.id === "child"
+    ? [["lt", "<"], ["lte", "≤"]]
+    : [["gte", "≥"], ["gt", ">"]];
+  const plainCondition = rule.id === "student" ? "持有学生证" : "与家庭成员同行";
+  return `<article class="policy-rule" data-rule-id="${rule.id}">
+    <label class="rule-toggle"><input type="checkbox" name="ruleEnabled" value="${rule.id}" ${rule.enabled ? "checked" : ""}><span><strong>${meta.label}</strong><small>勾选后使用这条规则</small></span></label>
+    <div class="policy-condition-editor">
+      <span>条件</span>
+      ${numeric ? `<div><strong>${meta.fieldLabel}</strong><select name="ruleOperator-${rule.id}" aria-label="${meta.label}比较符">${operators.map(([value, label]) => `<option value="${value}" ${rule.operator === value ? "selected" : ""}>${label}</option>`).join("")}</select><input type="number" name="ruleThreshold-${rule.id}" value="${rule.threshold}" min="0" max="220" aria-label="${meta.label}阈值"><small>${meta.valueLabel}</small></div>` : `<strong>${plainCondition}</strong>`}
+    </div>
+    <label>优惠票价<input type="number" name="rulePrice-${rule.id}" value="${rule.price}" min="0" max="20" step="1"><small>0—20元整数</small></label>
+    <label>判断顺序<select name="rulePriority-${rule.id}">${[1,2,3,4].map(value => `<option value="${value}" ${rule.priority === value ? "selected" : ""}>第${value}个</option>`).join("")}</select><small>不能与其他规则重复</small></label>
+  </article>`;
+}
+
+function projectMetric(label, value, pass, note = "") {
+  return `<article class="${pass ? "pass" : "fail"}"><span>${label}</span><strong>${value}</strong>${note ? `<small>${note}</small>` : ""}</article>`;
+}
+
+function projectResultRow(item) {
+  const visitor = item.visitor;
+  const hit = item.matchedRules.length ? item.matchedRules.map(id => CrossDisciplinaryLab.RULE_META[id]?.label || id).join("、") : "无（默认分支）";
+  const facts = [`${visitor.height}cm`, `${visitor.age}岁`, visitor.student ? "有学生证" : "无学生证", visitor.family ? "家庭同行" : "非家庭同行"];
+  return `<tr class="${item.collision ? "collision" : ""}"><td><strong>${escapeHtml(visitor.name)}</strong><small>${escapeHtml(visitor.focus || "")}</small></td><td>${facts.join(" · ")}</td><td>${hit}${item.collision ? "<small>同时符合多项，按顺序出票</small>" : ""}</td><td><strong>${item.ticketLabel}</strong><br>${item.price}元</td></tr>`;
 }
 
 function attachLevelHandlers() {
   document.querySelectorAll("[data-phase]").forEach(btn => btn.addEventListener("click", () => {
     const phase = phaseMeta[Number(btn.dataset.phase) - 1];
-    if (phase.id === 5) {
-      switchPage("evaluation");
-      return;
-    }
     state.currentLevel = phase.levels[0];
     saveState();
     renderMap();
@@ -792,6 +996,10 @@ function attachLevelHandlers() {
     updateAssistantContext();
   }));
   document.querySelectorAll(".substep-tab").forEach(btn => btn.addEventListener("click", () => {
+    if (btn.hasAttribute("data-open-final-evaluation")) {
+      switchPage("evaluation");
+      return;
+    }
     state.currentLevel = Number(btn.dataset.level);
     saveState();
     renderMap();
@@ -804,7 +1012,7 @@ function attachLevelHandlers() {
     renderMap();
   });
   document.getElementById("next-stage").addEventListener("click", () => {
-    if (state.currentLevel >= 6) {
+    if (state.currentLevel >= 5) {
       switchPage("evaluation");
       return;
     }
@@ -822,10 +1030,26 @@ function attachLevelHandlers() {
     saveState();
     renderMap();
   }));
-  const learningSegment = knowledgeSegments[state.currentLevel];
+  const learningSegment = state.currentLevel === 5 ? null : knowledgeSegments[state.currentLevel];
   const activeView = learningSegment ? state.knowledge.activeViews[state.currentLevel] || "learn" : "challenge";
   if (learningSegment && activeView === "learn") {
     attachKnowledgePanel(state.currentLevel);
+  } else if (state.currentLevel === 5) {
+    attachProjectLab();
+  } else if (state.currentLevel === 4 && window.RuleLab) {
+    window.RuleLab.attach(state.currentLevel, {
+      state,
+      save: saveState,
+      complete: markComplete,
+      toast: showToast,
+      rerender: renderMap,
+      evaluateThinking: level => LearningModel.thinkingEligible(state, level).earned,
+      syncThinking: level => {
+        const entry = state.worksheet.entries[level];
+        entry.explanation = state.game.missions[level].review;
+        updateThinkingStar(level);
+      }
+    });
   } else {
     TicketGame.attach(state.currentLevel, {
       state,
@@ -1154,49 +1378,191 @@ function attachLevel5() {
   });
 }
 
-function attachFinalTask() {
-  const form = document.getElementById("creative-task-form");
-  document.getElementById("add-test-row").addEventListener("click", () => {
-    const rows = document.getElementById("task-test-rows");
-    rows.insertAdjacentHTML("beforeend", testRow({input:"", expected:""}, rows.children.length));
-    attachRemoveRows();
+function attachProjectLab() {
+  const form = document.getElementById("project-lab-form");
+  if (!form) return;
+
+  document.querySelectorAll("[data-project-step]").forEach(button => button.addEventListener("click", () => {
+    collectProjectForm(form);
+    const target = Math.min(4, Math.max(1, Number(button.dataset.projectStep) || 1));
+    state.project.activeStep = target;
+    saveState();
+    renderMap();
+  }));
+
+  document.getElementById("open-final-check")?.addEventListener("click", () => {
+    collectProjectForm(form);
+    saveState();
+    switchPage("evaluation");
   });
-  attachRemoveRows();
-  form.addEventListener("submit", async e => {
-    e.preventDefault();
-    const data = new FormData(form);
-    const inputs = data.getAll("testInput").map(v => v.trim());
-    const expected = data.getAll("testExpected").map(v => v.trim());
-    const tests = inputs.map((input, i) => ({ input, expected: expected[i] })).filter(row => row.input && row.expected);
-    if (tests.length < 3) return showToast("最终任务至少需要三组完整测试数据。");
-    state.answers.task = {
-      offer: data.get("offer").trim(),
-      price: data.get("price").trim(),
-      condition: data.get("condition").trim(),
-      order: data.get("order").trim(),
-      fairness: data.get("fairness").trim(),
-      pseudocode: data.get("pseudocode").trim(),
-      members: data.get("members").trim(),
-      roles: data.get("roles").trim(),
-      tests
+
+  document.getElementById("run-project-policy").addEventListener("click", () => {
+    collectProjectForm(form);
+    const evaluated = CrossDisciplinaryLab.evaluatePolicy(state.project.policy);
+    state.project.datasetResults = evaluated.results;
+    state.project.metrics = evaluated.metrics;
+    state.project.mathEvidence.totalIncome = evaluated.metrics.totalIncome;
+    state.project.mathEvidence.discountedCount = evaluated.metrics.discountedCount;
+    state.game.missions[5].attempts = Number(state.game.missions[5].attempts || 0) + 1;
+    state.game.missions[5].lastRun = evaluated.results.map(item => ({
+      visitor: item.visitor,
+      actual: item.ticketId === "full" ? "full" : "custom",
+      expected: item.ticketId === "full" ? "full" : "custom",
+      correct: true,
+      price: item.price,
+      matchedRules: item.matchedRules
+    }));
+    state.game.missions[5].earned.accuracy = evaluated.metrics.allConstraintsPass;
+    state.game.missions[5].earned.logic = evaluated.metrics.uniqueOutcomes && evaluated.metrics.boundaryCoverage === 100;
+    saveState();
+    showToast(evaluated.metrics.allConstraintsPass ? "12名游客运行完成，当前方案满足全部硬约束。" : "运行完成。请根据红色约束提示继续修改方案。");
+    renderMap();
+  });
+
+  document.getElementById("generate-project-code").addEventListener("click", () => {
+    collectProjectForm(form);
+    state.project.pseudocode = CrossDisciplinaryLab.generatePseudocode(state.project.policy);
+    saveState();
+    renderMap();
+    showToast("已按当前优先级生成伪代码骨架，请小组逐行检查。");
+  });
+
+  document.getElementById("run-hidden-cases").addEventListener("click", () => {
+    collectProjectForm(form);
+    const hidden = CrossDisciplinaryLab.evaluatePolicy(state.project.policy, CrossDisciplinaryLab.HIDDEN_VISITORS);
+    state.project.hiddenResults = hidden.results;
+    saveState();
+    renderMap();
+    showToast("隐藏反例已运行。请检查多条件游客的优先级是否符合你们的公平原则。");
+  });
+
+  document.getElementById("record-project-revision").addEventListener("click", () => {
+    collectProjectForm(form);
+    const reason = state.project.revisionReason.trim();
+    if (reason.length < 4) return showToast("请先写明哪条数据或质疑促使你修改（至少4个字）。");
+    if (CrossDisciplinaryLab.policiesEqual(state.project.lastPolicy, state.project.policy)) {
+      return showToast("当前规则与上一版相同，请先修改条件、票价或优先级。");
+    }
+    state.project.revisions.push(CrossDisciplinaryLab.buildRevision(state.project.lastPolicy, state.project.policy, reason));
+    state.project.lastPolicy = structuredClone(state.project.policy);
+    state.project.revisionReason = "";
+    saveState();
+    renderMap();
+    showToast("本次算法修订已加入证据链。");
+  });
+
+  document.getElementById("export-audit-card").addEventListener("click", () => {
+    collectProjectForm(form);
+    const payload = {
+      title: "智慧乐园票价公约同伴审查卡",
+      exportedAt: new Date().toISOString(),
+      group: state.learner.group || "未填写小组",
+      policy: state.project.policy,
+      policySummary: CrossDisciplinaryLab.policySummary(state.project.policy),
+      metrics: CrossDisciplinaryLab.evaluatePolicy(state.project.policy).metrics,
+      peerAudit: state.project.peerAudit,
+      fairnessEvidence: state.project.fairnessEvidence
     };
-    markComplete(6);
+    downloadJson(payload, `${state.learner.group || "小组"}-票价公约同伴审查卡.json`);
+    saveState();
+    showToast("同伴审查卡已导出，可交给另一小组填写或核对。");
+  });
+
+  form.addEventListener("submit", async event => {
+    event.preventDefault();
+    collectProjectForm(form);
+    const acceptance = CrossDisciplinaryLab.projectAcceptance(state.project);
+    if (!acceptance.pass) {
+      const pending = Object.values(acceptance.checks).filter(item => !item.pass).map(item => item.label).slice(0, 3);
+      saveState();
+      return showToast(`方案包还缺少：${pending.join("；")}${Object.values(acceptance.checks).filter(item => !item.pass).length > 3 ? "……" : ""}`);
+    }
+    state.project.datasetResults = acceptance.evaluation.results;
+    state.project.metrics = acceptance.evaluation.metrics;
+    state.project.submittedAt = new Date().toISOString();
+    state.answers.task = {
+      offer: "智慧乐园票价公约",
+      price: "基础票20元",
+      condition: CrossDisciplinaryLab.policySummary(state.project.policy),
+      order: state.project.policy.rules.slice().sort((a, b) => a.priority - b.priority).map(rule => rule.id).join("→"),
+      fairness: state.project.fairnessEvidence.principle,
+      pseudocode: state.project.pseudocode,
+      members: state.project.members,
+      roles: state.project.roles,
+      tests: state.project.datasetResults.map(item => ({ input: item.visitor.id, expected: `${item.ticketLabel}${item.price}元` }))
+    };
+    state.worksheet.entries[5].explanation = state.project.personalReflection;
+    state.game.missions[5].review = state.project.personalReflection;
+    state.game.missions[5].earned.accuracy = true;
+    state.game.missions[5].earned.logic = true;
+    updateThinkingStar(5, false);
+    markComplete(5);
     try {
-      const result = await submitLearningData("creative-task", state.answers.task);
-      if (result.stored === "remote") showToast("小组作品已提交到在线收集端。");
+      const result = await submitLearningData("creative-task-v2", structuredClone(state.project));
+      if (result.stored === "remote") showToast("跨学科方案包已提交到在线收集端。");
+      else showToast("跨学科方案包已保存在当前浏览器，可导出学习记录提交。");
     } catch {
-      showToast("在线提交失败，作品已在本地保存，可导出学习记录后提交。");
+      showToast("在线提交失败，方案包已在本地保存，可导出学习记录后提交。");
     }
     renderMap();
   });
 }
 
-function attachRemoveRows() {
-  document.querySelectorAll(".remove-row").forEach(button => button.onclick = () => {
-    const rows = document.getElementById("task-test-rows");
-    if (rows.children.length <= 3) return showToast("至少保留三组测试数据。");
-    button.closest(".test-row").remove();
-  });
+function collectProjectForm(form) {
+  const data = new FormData(form);
+  const enabled = new Set(data.getAll("ruleEnabled"));
+  const previousPolicy = CrossDisciplinaryLab.normalizePolicy(state.project.policy);
+  const previousGeneratedCode = CrossDisciplinaryLab.generatePseudocode(previousPolicy);
+  const current = structuredClone(previousPolicy);
+  current.rules = current.rules.map(rule => ({
+    ...rule,
+    enabled: enabled.has(rule.id),
+    operator: data.get(`ruleOperator-${rule.id}`) || rule.operator,
+    threshold: ["student", "family"].includes(rule.id) ? true : Number(data.get(`ruleThreshold-${rule.id}`)),
+    price: Number(data.get(`rulePrice-${rule.id}`)),
+    priority: Number(data.get(`rulePriority-${rule.id}`))
+  }));
+  const policyChanged = !CrossDisciplinaryLab.policiesEqual(previousPolicy, current);
+  if (policyChanged) {
+    state.project.datasetResults = [];
+    state.project.hiddenResults = [];
+    state.project.metrics = null;
+  }
+  state.project.policy = current;
+  const enteredCode = String(data.get("projectPseudocode") || "").trim();
+  state.project.pseudocode = policyChanged && (!state.project.pseudocode || enteredCode === previousGeneratedCode)
+    ? CrossDisciplinaryLab.generatePseudocode(current)
+    : enteredCode;
+  state.project.mathEvidence = {
+    ...state.project.mathEvidence,
+    calculation: String(data.get("mathCalculation") || "").trim(),
+    comparison: String(data.get("mathComparison") || "").trim()
+  };
+  state.project.fairnessEvidence = {
+    principle: String(data.get("fairnessPrinciple") || "").trim(),
+    caseIds: data.getAll("fairnessCase"),
+    conflictExplanation: String(data.get("fairnessConflict") || "").trim()
+  };
+  state.project.peerAudit = {
+    reviewer: String(data.get("auditReviewer") || "").trim(),
+    issueType: String(data.get("auditIssueType") || "").trim(),
+    counterexample: String(data.get("auditCounterexample") || "").trim(),
+    suggestion: String(data.get("auditSuggestion") || "").trim()
+  };
+  state.project.revisionReason = String(data.get("revisionReason") || "").trim();
+  state.project.members = String(data.get("projectMembers") || "").trim();
+  state.project.roles = String(data.get("projectRoles") || "").trim();
+  state.project.defense = String(data.get("projectDefense") || "").trim();
+  state.project.personalReflection = String(data.get("personalReflection") || "").trim();
+}
+
+function downloadJson(value, filename) {
+  const url = URL.createObjectURL(new Blob([JSON.stringify(value, null, 2)], { type: "application/json;charset=utf-8" }));
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = filename;
+  link.click();
+  URL.revokeObjectURL(url);
 }
 
 function showHint(level) {
@@ -1206,8 +1572,8 @@ function showHint(level) {
     1: "先找条件：谁的身高低于 120cm？条件成立后会执行哪个结果？",
     2: "流程从“开始”向下执行。判断框之后必须分为“是”和“否”两条路。",
     3: "统一规则使用严格小于号“<”。条件不成立时需要使用 else。",
-    4: "重点只看 120cm：它在“<120”和“≤120”中的判断结果相反。",
-    5: "想一想：116cm 且有学生证的人，哪种优惠应该优先？内层代码要再向右缩进。"
+    4: "先完成边界排错，再比较两种顺序的收入与优惠人数，最后用一位游客说明公平。",
+    5: "先运行12名游客，再用总收入、优惠人数和一名冲突游客说明当前方案哪里需要修改。"
   };
   showToast(`${diagnosis ? `${diagnosis.label} · ${diagnosis.hintLevel}级提示` : "提示"}：${diagnosis?.hint || hints[level]}`);
   saveState();
@@ -1246,7 +1612,7 @@ function renderWorksheet() {
     <div class="worksheet-toolbar">
       <div>
         <span class="eyebrow">MISSION RECORDS</span>
-        <h2>我的六段闯关记录</h2>
+        <h2>我的五段闯关记录</h2>
       </div>
       <div class="worksheet-filters" role="group" aria-label="筛选任务单">
         ${filters.map(([value, label, count]) => `<button type="button" class="${state.worksheet.filter === value ? "active" : ""}" data-worksheet-filter="${value}">${label}<span>${count}</span></button>`).join("")}
@@ -1312,6 +1678,7 @@ function renderWorksheet() {
                   <small>${thinkingStatusText(thinkingEvidence, entry.explanation)}</small>
                 </label>
               </div>
+              ${level.id === 5 ? renderProjectWorksheetEvidence() : ""}
               ${diagnoses.length ? `<div class="diagnosis-trail"><strong>诊断与修正记录</strong>${diagnoses.map(item =>
                 `<span class="${item.resolved ? "resolved" : ""}">${escapeHtml(LearningModel.ERROR_META[item.type]?.label || item.type)} · ${item.resolved ? "已修正" : `${item.hintLevel}级提示`}${item.detail ? ` · ${escapeHtml(item.detail)}` : ""}</span>`).join("")}</div>` : ""}
             </div>
@@ -1346,7 +1713,7 @@ function renderWorksheet() {
       if (evidenceStars) evidenceStars.textContent = `最佳 ${state.game.missions[level].bestStars}/3 星`;
       const thinkingCount = levelMeta.filter(item => LearningModel.thinkingEligible(state, item.id).earned).length;
       document.getElementById("worksheet-thinking-stat").textContent = `${thinkingCount}/${levelMeta.length}`;
-      document.getElementById("worksheet-star-stat").textContent = `${TicketGame.totalStars(state)}/18`;
+      document.getElementById("worksheet-star-stat").textContent = `${TicketGame.totalStars(state)}/15`;
       const pendingBadge = document.querySelector('[data-worksheet-filter="pending"] span');
       if (pendingBadge) pendingBadge.textContent = levelMeta.length - thinkingCount;
     }
@@ -1367,7 +1734,7 @@ function renderWorksheet() {
   const totalStars = TicketGame.totalStars(state);
   const thinkingCount = levelMeta.filter(level => LearningModel.thinkingEligible(state, level.id).earned).length;
   document.getElementById("worksheet-completed-stat").textContent = `${state.completed.length}/${levelMeta.length}`;
-  document.getElementById("worksheet-star-stat").textContent = `${totalStars}/18`;
+  document.getElementById("worksheet-star-stat").textContent = `${totalStars}/15`;
   document.getElementById("worksheet-thinking-stat").textContent = `${thinkingCount}/${levelMeta.length}`;
   document.getElementById("passport-name").textContent = state.learner.name || "未来工程师";
   document.getElementById("learner-summary").innerHTML = `
@@ -1379,6 +1746,23 @@ function renderWorksheet() {
   ring.style.background = `conic-gradient(var(--yellow) ${progress}%, rgba(255,255,255,.13) ${progress}%)`;
   ring.querySelector("span").textContent = `${progress}%`;
   document.getElementById("worksheet-tip").textContent = progress === 100 ? "所有学习任务都已汇入，可以进行最终评价。" : `还剩 ${levelMeta.length - state.completed.length} 项任务，继续沿闯关地图前进吧。`;
+}
+
+function renderProjectWorksheetEvidence() {
+  const project = CrossDisciplinaryLab.ensureProjectState(state.project);
+  const metrics = project.metrics || CrossDisciplinaryLab.evaluatePolicy(project.policy).metrics;
+  const caseNames = project.fairnessEvidence.caseIds.map(id => CrossDisciplinaryLab.PUBLIC_VISITORS.find(visitor => visitor.id === id)?.name || id);
+  return `<div class="project-worksheet-evidence">
+    <strong>跨学科方案包证据</strong>
+    <dl>
+      <dt>数学证据</dt><dd>总收入${metrics.totalIncome}元；优惠${metrics.discountedCount}人；边界覆盖${metrics.boundaryCoverage}%</dd>
+      <dt>规则依据</dt><dd>${escapeHtml(CrossDisciplinaryLab.policySummary(project.policy))}</dd>
+      <dt>公平案例</dt><dd>${caseNames.length ? escapeHtml(caseNames.join("、")) : "尚未选择"}</dd>
+      <dt>公平性质疑</dt><dd>${escapeHtml(project.peerAudit.counterexample || "尚未记录同伴反例")}</dd>
+      <dt>同伴建议</dt><dd>${escapeHtml(project.peerAudit.suggestion || "尚未记录")}</dd>
+      <dt>修改记录</dt><dd>${project.revisions.length}次${project.revisions.length ? `；最近一次：${escapeHtml(project.revisions.at(-1).reason)}` : ""}</dd>
+    </dl>
+  </div>`;
 }
 
 function thinkingStatusText(status, value = "") {
@@ -1404,8 +1788,8 @@ const quizData = [
 
 function renderEvaluation() {
   document.getElementById("quiz-panel").innerHTML = `
-    <span class="eyebrow">KNOWLEDGE QUIZ</span>
-    <h2>五题检验你的判断力</h2>
+    <span class="eyebrow">个人小测</span>
+    <h2>五题检查我是否真正理解</h2>
     ${quizData.map((item, qi) => `
       <section class="quiz-question">
         <h3>${item.q}</h3>
@@ -1458,7 +1842,7 @@ function quizFeedback() {
 }
 
 function renderRatings() {
-  const items = ["我能解释双分支", "我能读懂流程图", "我会测试边界值", "我能理解嵌套顺序"];
+  const items = ["我能把规则写成分支算法", "我会用边界值测试规则", "我能计算收入和优惠人数", "我能用游客案例说明公平"];
   document.getElementById("self-rating").innerHTML = items.map((item, i) => `
     <div class="rating-row"><span>${item}</span><span class="stars" data-rating="${i}">
       ${[1,2,3,4,5].map(v => `<button type="button" class="${(state.selfRating[i] || 0) >= v ? "active" : ""}" data-value="${v}" aria-label="${v} 星">★</button>`).join("")}
@@ -1480,8 +1864,8 @@ function updateCertificate() {
     const title = TicketGame.awardTitle(stars);
     document.getElementById("certificate-name").textContent = state.learner.name || "优秀学员";
     document.getElementById("certificate-title").textContent = title;
-    document.getElementById("certificate-stars").textContent = `${stars} / 18 颗闯关星`;
-    document.getElementById("certificate-achievement").textContent = `能够配置判断闸机、检验边界值，并运用双分支与嵌套分支设计智慧票站。`;
+    document.getElementById("certificate-stars").textContent = `${stars} / 15 颗闯关星`;
+    document.getElementById("certificate-achievement").textContent = `能够把公共规则写成分支算法，用数学证据检验约束，并根据公平性质疑修订智慧乐园票价公约。`;
     document.getElementById("certificate-id").textContent = `${state.learner.className || "班级未填写"} · ${state.learner.id || "CAL-LEARNER"} · 测验 ${state.quizScore}/5 · ${new Date().toLocaleDateString("zh-CN")}`;
     saveState();
   }
@@ -1532,6 +1916,9 @@ function assistantLearningContext() {
       : [],
     recommendedActivity: diagnosis?.recommendedActivity || state.learnerModel.recommendations?.[0]?.title || "",
     confidenceGap: state.learnerModel.confidenceGap || ""
+    ,projectMetrics: state.currentPage === "map" && state.currentLevel === 5
+      ? CrossDisciplinaryLab.evaluatePolicy(state.project.policy).metrics
+      : null
   };
 }
 
@@ -1546,6 +1933,12 @@ function localAssistantReply(question) {
   if (/边界|120|小于|等于/.test(question)) {
     return "把 119、120、121 分别代入“身高 < 120cm”试试看。哪一个数刚好让判断结果发生变化？";
   }
+  if (state.currentPage === "map" && state.currentLevel === 5 && /答案|最佳|怎么改|公平|收入|优惠|条件|顺序|方案/.test(question)) {
+    const metrics = CrossDisciplinaryLab.evaluatePolicy(state.project.policy).metrics;
+    if (metrics.totalIncome < 160) return `先别急着改全部规则。当前总收入是${metrics.totalIncome}元：哪一项优惠人数较多、票价又较低？先只调整一项，再重新运行12名游客。`;
+    if (metrics.discountedCount < 5) return `当前只有${metrics.discountedCount}人获得优惠。请从游客表中找出一类有共同、可观察条件的人，再判断增加这项优惠是否仍能守住160元收入底线。`;
+    return "请从表中指出一位同时符合两项条件的游客：如果调换这两项规则的优先级，他的票种和总收入会怎样变化？";
+  }
   if (/缩进|嵌套|学生证|顺序/.test(question)) {
     return "先用“116cm 且有学生证”的游客检查优惠优先级。确定先判断身高后，再看看学生证判断应该放在哪一条路径里面。";
   }
@@ -1556,9 +1949,8 @@ function localAssistantReply(question) {
     1: "先比较两个人的身高与 120cm，再预测他们会走向哪个票口。",
     2: "先安装“身高 < 120cm”条件，再分别设置成立和不成立的出口。",
     3: "让同一个身高同时经过流程图和代码，观察高亮是否走在同一条路径。",
-    4: "重点比较两段程序对 120cm 的输出，不必一次检查所有数字。",
-    5: "用“低于 120cm 且有学生证”的游客测试判断顺序。",
-    6: "新规则需要写清条件、优先级，并准备普通值、边界值和冲突值。"
+    4: "先完成边界排错，再比较两种顺序的收入与优惠人数，最后用一位游客说明公平。",
+    5: "先运行12名游客，再用总收入、优惠人数和一名冲突游客说明当前方案哪里需要修改。"
   };
   return state.currentPage === "map"
     ? `${hints[state.currentLevel]} 你愿意先说说自己的预测吗？`
@@ -1659,10 +2051,10 @@ function openMedia(title = "任务导入") {
 function videoFallback(title) {
   if (title.includes("情景导入")) return "从智慧乐园售票任务出发，了解本节课需要解决的真实问题和学习目标。";
   if (title.includes("知识讲解")) return "围绕分支判断、流程图、if-else 代码和边界值测试梳理核心知识。";
-  if (title.includes("古涛")) return "由古涛老师结合课程内容进行完整讲解，帮助你梳理分支判断的规则、流程与学习重点。";
+  if (title.includes("老师讲解")) return "由老师结合课程内容进行完整讲解，帮助你梳理分支判断的规则、流程与学习重点。";
   if (title.includes("嵌套")) return "先判断身高，只有身高达到 120cm 时，才进入学生证判断。内层代码通过更深的缩进表示层次。";
   if (title.includes("总结")) return "条件决定路径，流程图表达路径，代码执行路径，测试帮助我们确认路径是否正确。";
-  return "你将扮演智慧乐园售票员，通过五项训练学会让程序根据条件做出正确选择。";
+  return "你将通过五项任务学习分支判断，并用算法、数学证据和公平原则完成智慧乐园票价公约。";
 }
 
 function closePdf() {
@@ -1670,12 +2062,12 @@ function closePdf() {
 }
 
 function exportRecord() {
-  const data = LearningModel.exportV3(state);
+  const data = LearningModel.exportV4(state);
   const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json;charset=utf-8" });
   const url = URL.createObjectURL(blob);
   const link = document.createElement("a");
   link.href = url;
-  link.download = `${state.learner.name || "学员"}-分支判断学习记录.json`;
+  link.download = `${state.learner.name || "学员"}-智慧乐园票价公约学习记录.json`;
   link.click();
   URL.revokeObjectURL(url);
 }
@@ -1789,7 +2181,7 @@ function initEvents() {
   document.querySelectorAll("[data-close-modal]").forEach(btn => btn.addEventListener("click", closeModals));
   document.getElementById("modal-backdrop").addEventListener("click", closeModals);
   document.getElementById("intro-video-button").addEventListener("click", () => openMedia("情景导入"));
-  document.getElementById("open-gu-tao-video").addEventListener("click", () => openMedia("古涛老师讲解"));
+  document.getElementById("open-gu-tao-video").addEventListener("click", () => openMedia("老师讲解"));
   document.getElementById("open-video-library").addEventListener("click", () => {
     document.getElementById("media-title").textContent = "数字人微课";
     document.getElementById("media-content").innerHTML = `
@@ -1862,6 +2254,9 @@ function init() {
   window.CAL_SWITCH_PAGE = switchPage;
   window.CAL_OPEN_MEDIA = openMedia;
   window.CAL_CLOSE_MODALS = closeModals;
+  window.CAL_CAPTURE_PRESENTATION_STATE = capturePresentationState;
+  window.CAL_PRESENTATION_NAVIGATE = navigatePresentation;
+  window.CAL_RESTORE_PRESENTATION_STATE = restorePresentationState;
   window.CAL_TOUR_FINISHED = () => {
     if (state.introSeen) return;
     state.introSeen = true;
@@ -1874,7 +2269,16 @@ function init() {
   updateGlobalUI();
   updateAssistantContext();
   switchPage(state.currentPage || "home", { instant: true });
-  if (!state.introSeen) {
+  const presentationRequested = new URLSearchParams(window.location.search).get("presentation") === "1";
+  if (presentationRequested) {
+    try {
+      const cleanUrl = `${window.location.pathname}${window.location.hash}`;
+      window.history.replaceState({}, "", cleanUrl);
+    } catch {
+      // file:// previews may not allow history replacement; the tour still works.
+    }
+    setTimeout(() => window.UsageTour?.startPresentation(), 500);
+  } else if (!state.introSeen) {
     setTimeout(() => window.UsageTour?.start(), 500);
   }
 }

@@ -24,18 +24,18 @@
 
   function createDemoRecords() {
     const learners = [
-      ["202601", "林晓雨", 6, 17, 5, [92, 90, 88, 84, 78], "", "", 0],
-      ["202602", "陈子涵", 6, 16, 4, [88, 85, 74, 82, 76], "boundary-confusion", "", 2],
-      ["202603", "王一诺", 5, 14, 4, [82, 78, 72, 68, 60], "nested-order", "", 2],
-      ["202604", "李明轩", 5, 13, 3, [76, 70, 64, 62, 55], "flow-code-mismatch", "overconfidence", 3],
-      ["202605", "周可欣", 6, 15, 5, [86, 82, 80, 75, 72], "low-confidence", "low-confidence", 1],
-      ["202606", "赵宇辰", 4, 11, 3, [72, 68, 58, 52, 45], "boundary-confusion", "", 3],
-      ["202607", "孙诗琪", 4, 10, 2, [66, 62, 54, 48, 42], "branch-direction", "overconfidence", 4],
-      ["202608", "吴嘉乐", 5, 13, 4, [80, 76, 70, 66, 58], "indentation", "", 2],
-      ["202609", "郑雨桐", 3, 8, 3, [68, 60, 52, 40, 35], "flow-code-mismatch", "", 3],
-      ["202610", "何俊熙", 6, 18, 5, [96, 94, 92, 90, 86], "", "", 0],
-      ["202611", "冯思源", 4, 9, 3, [70, 65, 56, 50, 44], "boundary-confusion", "", 4],
-      ["202612", "蒋依晨", 5, 12, 4, [78, 74, 68, 64, 57], "nested-order", "low-confidence", 2]
+      ["202601", "林晓雨", 5, 14, 5, [92, 90, 88, 84, 78], "", "", 0],
+      ["202602", "陈子涵", 5, 13, 4, [88, 85, 74, 82, 76], "boundary-confusion", "", 2],
+      ["202603", "王一诺", 4, 11, 4, [82, 78, 72, 68, 60], "nested-order", "", 2],
+      ["202604", "李明轩", 4, 10, 3, [76, 70, 64, 62, 55], "flow-code-mismatch", "overconfidence", 3],
+      ["202605", "周可欣", 5, 12, 5, [86, 82, 80, 75, 72], "low-confidence", "low-confidence", 1],
+      ["202606", "赵宇辰", 4, 9, 3, [72, 68, 58, 52, 45], "boundary-confusion", "", 3],
+      ["202607", "孙诗琪", 3, 8, 2, [66, 62, 54, 48, 42], "branch-direction", "overconfidence", 4],
+      ["202608", "吴嘉乐", 4, 10, 4, [80, 76, 70, 66, 58], "indentation", "", 2],
+      ["202609", "郑雨桐", 3, 7, 3, [68, 60, 52, 40, 35], "flow-code-mismatch", "", 3],
+      ["202610", "何俊熙", 5, 15, 5, [96, 94, 92, 90, 86], "", "", 0],
+      ["202611", "冯思源", 4, 8, 3, [70, 65, 56, 50, 44], "boundary-confusion", "", 4],
+      ["202612", "蒋依晨", 4, 10, 4, [78, 74, 68, 64, 57], "nested-order", "low-confidence", 2]
     ];
     const activities = {
       "boundary-confusion": ["边界值专项练习", 4],
@@ -43,7 +43,7 @@
       "flow-code-mismatch": ["流程代码对应练习", 3],
       "nested-order": ["嵌套结构复习", 5],
       indentation: ["缩进层次练习", 5],
-      "low-confidence": ["迁移挑战", 6],
+      "low-confidence": ["迁移挑战", 5],
       overconfidence: ["诊断性复习", 3]
     };
 
@@ -62,14 +62,16 @@
       if (confidenceGap && confidenceGap !== mainError) {
         errorTypes[confidenceGap] = { count: 1, hintLevel: 1, levels: [], active: true };
       }
-      const recommendation = activities[mainError] || (completedCount === 6 ? ["创意规则拓展", 6] : ["继续当前学习路径", completedCount + 1]);
-      const missions = Object.fromEntries([1, 2, 3, 4, 5, 6].map(level => [
+      const recommendation = activities[mainError] || (completedCount === 5 ? ["创意规则拓展", 5] : ["继续当前学习路径", completedCount + 1]);
+      const missions = Object.fromEntries([1, 2, 3, 4, 5].map(level => [
         level,
         { attempts: level <= completedCount ? 1 + ((index + level) % 3) : 0 }
       ]));
+      const projectCompleted = completedCount === 5;
+      const projectIncome = projectCompleted ? 158 + ((index * 5) % 25) : 0;
       return {
-        schemaVersion: 3,
-        title: "《分支判断》示例学习记录",
+        schemaVersion: 4,
+        title: "《智慧乐园票价公约》示例学习记录",
         exportedAt: `2026-06-${String(12 - (index % 5)).padStart(2, "0")}T09:00:00.000Z`,
         learner: { id, name, className: "五年级（2）班", group: `${(index % 4) + 1}组` },
         progress: { completed, completedCount, totalStars: stars, missions },
@@ -81,7 +83,23 @@
         },
         assessment: { quizSubmitted: true, quizScore, quiz: {}, selfRating: {}, feedback: null, knowledge: {} },
         inquiryEvidence: {},
-        worksheet: {}
+        worksheet: {},
+        project: projectCompleted ? {
+          metrics: {
+            totalIncome: projectIncome,
+            discountedCount: 5 + (index % 4),
+            collisionCount: 2 + (index % 3),
+            boundaryCoverage: index % 5 === 0 ? 83 : 100,
+            uniqueOutcomes: index % 6 !== 0,
+            allConstraintsPass: projectIncome >= 160 && index % 5 !== 0 && index % 6 !== 0
+          },
+          fairnessEvidence: {
+            principle: index % 4 === 0 ? "" : "相同条件采用相同规则，并用具体游客核对。",
+            caseIds: index % 4 === 0 ? ["H120"] : ["H119", "A60"]
+          },
+          peerAudit: { reviewer: "同伴小组", counterexample: "多条件游客", suggestion: "重新核对优先级" },
+          revisions: Array.from({ length: index % 3 }, (_, revision) => ({ reason: `第${revision + 1}次修订` }))
+        } : null
       };
     });
   }
@@ -125,14 +143,14 @@
 
   function summary() {
     const count = records.length;
-    const completedRate = count ? Math.round(records.reduce((sum, record) => sum + (record.progress?.completedCount || 0), 0) / (count * 6) * 100) : 0;
+    const completedRate = count ? Math.round(records.reduce((sum, record) => sum + (record.progress?.completedCount || 0), 0) / (count * 5) * 100) : 0;
     const averageStars = count ? (records.reduce((sum, record) => sum + Number(record.progress?.totalStars || 0), 0) / count).toFixed(1) : "0.0";
     const averageQuiz = count ? (records.reduce((sum, record) => sum + Number(record.assessment?.quizScore || 0), 0) / count).toFixed(1) : "0.0";
     const mastery = Object.fromEntries(Object.keys(masteryLabels).map(key => [
       key,
       average(records.map(record => record.diagnostics?.mastery?.[key] || 0))
     ]));
-    const levels = [1, 2, 3, 4, 5, 6].map(level => {
+    const levels = [1, 2, 3, 4, 5].map(level => {
       const completed = records.filter(record => record.progress?.completed?.includes(level)).length;
       const attempts = average(records.map(record => record.progress?.missions?.[level]?.attempts || 0));
       return { level, completed, rate: count ? Math.round(completed / count * 100) : 0, attempts };
@@ -147,7 +165,17 @@
       highWrong: records.filter(record => record.diagnostics?.confidenceGap === "overconfidence")
     };
     const boundaryMistakes = records.filter(record => record.diagnostics?.errorTypes?.["boundary-confusion"]?.count > 0).length;
-    return { count, completedRate, averageStars, averageQuiz, mastery, levels, errorRanking, confidence, boundaryMistakes };
+    const projectRecords = records.filter(record => record.project && !record.project.legacyReadOnly);
+    const project = {
+      count: projectRecords.length,
+      logicCorrectness: average(projectRecords.map(record => record.project?.metrics?.uniqueOutcomes ? 100 : 0)),
+      boundaryCoverage: average(projectRecords.map(record => record.project?.metrics?.boundaryCoverage || 0)),
+      incomePassRate: projectRecords.length ? Math.round(projectRecords.filter(record => Number(record.project?.metrics?.totalIncome || 0) >= 160).length / projectRecords.length * 100) : 0,
+      conflictResolutionRate: projectRecords.length ? Math.round(projectRecords.filter(record => record.project?.metrics?.uniqueOutcomes).length / projectRecords.length * 100) : 0,
+      fairnessEvidenceRate: projectRecords.length ? Math.round(projectRecords.filter(record => (record.project?.fairnessEvidence?.caseIds || []).length >= 2 && String(record.project?.fairnessEvidence?.principle || "").trim().length >= 8).length / projectRecords.length * 100) : 0,
+      averageRevisions: projectRecords.length ? (projectRecords.reduce((sum, record) => sum + Number(record.project?.revisions?.length || 0), 0) / projectRecords.length).toFixed(1) : "0.0"
+    };
+    return { count, completedRate, averageStars, averageQuiz, mastery, levels, errorRanking, confidence, boundaryMistakes, project };
   }
 
   function render(container) {
@@ -176,10 +204,21 @@
     return `
       <div class="teacher-stat-grid">
         ${statCard(data.count, "已导入学生", "份学习记录")}
-        ${statCard(`${data.completedRate}%`, "总体完成率", "六关综合")}
-        ${statCard(`${data.averageStars}/18`, "平均星数", "准确·逻辑·思考")}
+        ${statCard(`${data.completedRate}%`, "总体完成率", "五关综合")}
+        ${statCard(`${data.averageStars}/15`, "平均星数", "准确·逻辑·思考")}
         ${statCard(`${data.averageQuiz}/5`, "平均测验", "总结评价")}
       </div>
+      <section class="teacher-panel interdisciplinary-panel">
+        <div class="teacher-panel-heading"><div><span class="eyebrow">INTERDISCIPLINARY EVIDENCE</span><h3>票价公约跨学科证据</h3></div><small>${data.project.count}份v4项目记录</small></div>
+        <div class="interdisciplinary-metrics">
+          ${statCard(`${data.project.logicCorrectness}%`, "逻辑唯一性", "优先级与默认分支")}
+          ${statCard(`${data.project.boundaryCoverage}%`, "边界覆盖", "身高与年龄六个边界")}
+          ${statCard(`${data.project.incomePassRate}%`, "收入达标", "不少于160元")}
+          ${statCard(`${data.project.conflictResolutionRate}%`, "冲突解决", "多条件游客有唯一结果")}
+          ${statCard(`${data.project.fairnessEvidenceRate}%`, "公平证据", "至少引用2名游客")}
+          ${statCard(data.project.averageRevisions, "平均修订", "数据或同伴质疑驱动")}
+        </div>
+      </section>
       <div class="teacher-dashboard-grid">
         <section class="teacher-panel mastery-panel">
           <div class="teacher-panel-heading"><div><span class="eyebrow">MASTERY</span><h3>五类知识掌握度</h3></div><small>综合知识检查与闯关表现</small></div>
@@ -213,7 +252,7 @@
         <div class="teacher-panel-heading"><div><span class="eyebrow">LEARNERS</span><h3>学生诊断与推荐</h3></div><small>可导出CSV用于课后分析</small></div>
         <div class="teacher-table-wrap">
           <table class="teacher-table">
-            <thead><tr><th>学生</th><th>班级</th><th>完成</th><th>星数</th><th>测验</th><th>主要错误</th><th>推荐任务</th></tr></thead>
+            <thead><tr><th>学生</th><th>班级</th><th>完成</th><th>星数</th><th>测验</th><th>项目收入</th><th>边界覆盖</th><th>公平证据</th><th>修订</th><th>主要错误</th><th>推荐任务</th></tr></thead>
             <tbody>${records.map(record => studentRow(record)).join("")}</tbody>
           </table>
         </div>
@@ -240,9 +279,13 @@
     return `<tr>
       <td>${escape(record.learner?.name || "未命名")}</td>
       <td>${escape(record.learner?.className || "-")}</td>
-      <td>${record.progress?.completedCount || 0}/6</td>
-      <td>${record.progress?.totalStars || 0}/18</td>
+      <td>${record.progress?.completedCount || 0}/5</td>
+      <td>${record.progress?.totalStars || 0}/15</td>
       <td>${record.assessment?.quizSubmitted ? `${record.assessment.quizScore}/5` : "未测验"}</td>
+      <td>${record.project?.metrics ? `${record.project.metrics.totalIncome || 0}元` : "旧版/未提交"}</td>
+      <td>${record.project?.metrics ? `${record.project.metrics.boundaryCoverage || 0}%` : "-"}</td>
+      <td>${record.project?.fairnessEvidence ? `${record.project.fairnessEvidence.caseIds?.length || 0}例` : "-"}</td>
+      <td>${record.project?.revisions?.length || 0}</td>
       <td>${escape(window.LearningModel.ERROR_META[error]?.label || "暂无")}</td>
       <td>${escape(recommendations)}</td>
     </tr>`;
@@ -252,13 +295,13 @@
     return `<div class="teacher-empty">
       <span>DATA</span>
       <h3>导入学生学习记录后生成班级仪表盘</h3>
-      <p>支持新版v3记录，也可以自动迁移当前网站导出的旧版JSON。重复或更旧的记录会被忽略。</p>
+      <p>支持新版v4跨学科记录，也会把v3及更早记录迁移为只读学习证据。重复或更旧的记录会被忽略。</p>
       <ol><li>学生在电子任务单点击“导出学习记录”</li><li>教师一次选择多个JSON文件</li><li>网页在本地生成统计图表并可导出CSV</li></ol>
     </div>`;
   }
 
   function exportCsv() {
-    const headings = ["学生编号", "姓名", "班级", "小组", "完成关卡", "星数", "测验成绩", "主要错误", "推荐任务"];
+    const headings = ["学生编号", "姓名", "班级", "小组", "完成关卡", "星数", "测验成绩", "项目收入", "优惠人数", "边界覆盖率", "冲突解决", "公平案例数", "修订次数", "主要错误", "推荐任务"];
     const rows = records.map(record => {
       const errors = Object.entries(record.diagnostics?.errorTypes || {}).sort((a, b) => Number(b[1]?.count || 0) - Number(a[1]?.count || 0));
       return [
@@ -269,6 +312,12 @@
         record.progress?.completedCount || 0,
         record.progress?.totalStars || 0,
         record.assessment?.quizSubmitted ? record.assessment.quizScore : "",
+        record.project?.metrics?.totalIncome || "",
+        record.project?.metrics?.discountedCount || "",
+        record.project?.metrics?.boundaryCoverage || "",
+        record.project?.metrics ? (record.project.metrics.uniqueOutcomes ? "是" : "否") : "",
+        record.project?.fairnessEvidence?.caseIds?.length || "",
+        record.project?.revisions?.length || "",
         errors.map(([key]) => window.LearningModel.ERROR_META[key]?.label || key).join("、"),
         (record.diagnostics?.recommendations || []).map(item => item.title).join("、")
       ];

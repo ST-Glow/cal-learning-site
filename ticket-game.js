@@ -22,6 +22,7 @@
       story: "为闸机安装正确的条件芯片，并设置“是”和“否”的出口。",
       visitors: [
         { name: "乐乐", icon: "🧒", height: 112, student: false },
+        { name: "冬冬", icon: "👧", height: 120, student: false },
         { name: "安安", icon: "👦", height: 145, student: false }
       ],
       type: "single",
@@ -41,18 +42,18 @@
     },
     {
       title: "边界值故障排查",
-      story: "119、120、121cm 三位游客来测试闸机，找出正确的条件芯片。",
+      story: "119、120、121cm 三位游客来测试闸机，找出正确的条件芯片，并看看写错会让谁多付或少付钱。",
       visitors: [
         { name: "119号", icon: "🧒", height: 119, student: false },
         { name: "120号", icon: "👧", height: 120, student: false },
         { name: "121号", icon: "👦", height: 121, student: false }
       ],
       type: "boundary",
-      review: "为什么必须测试 120cm？"
+      review: "为什么必须测试 120cm？这和票价公平有什么关系？"
     },
     {
-      title: "学生票双重闸机",
-      story: "安装两座判断闸机，让半价规则优先，再判断学生证。",
+      title: "优惠冲突实验",
+      story: "比较两种判断顺序，观察同一位游客的票种、收入和公平性怎样改变。",
       visitors: [
         { name: "妹妹", icon: "👧", height: 116, student: true },
         { name: "小明", icon: "👦", height: 138, student: true },
@@ -60,18 +61,18 @@
         { name: "小雨", icon: "🧒", height: 120, student: true }
       ],
       type: "nested",
-      review: "为什么先判断身高，再判断学生证？"
+      review: "哪位游客能证明判断顺序会改变票种或收入？怎样用数学证据说明公平？"
     },
     {
-      title: "设计我的智慧票站",
-      story: "增加一种原创优惠规则，配置闸机并完成至少三组游客测试。",
+      title: "智慧乐园票价公约",
+      story: "在收入、优惠覆盖和公平约束下，用12名游客检验并修订算法。",
       visitors: [
         { name: "奶奶", icon: "👵", height: 158, student: false, age: 66, family: false, group: false },
         { name: "小队长", icon: "🧒", height: 135, student: true, age: 11, family: false, group: true },
         { name: "一家人", icon: "👨‍👩‍👧", height: 170, student: false, age: 38, family: true, group: false }
       ],
       type: "custom",
-      review: "你的新优惠规则为什么公平？"
+      review: "哪条数据或同伴质疑改变了你的算法？"
     }
   ];
 
@@ -79,6 +80,7 @@
   let runtime = { paused: false, stopped: false, running: false, stepResolve: null };
   let runToken = 0;
   let audioContext = null;
+  let fullscreenHandler = null;
 
   function defaultMissionState(level) {
     return {
@@ -99,7 +101,7 @@
   function ensureGameState(state) {
     if (!state.game) state.game = { muted: false, reduceMotion: false, missions: {} };
     if (!state.game.missions) state.game.missions = {};
-    for (let level = 1; level <= 6; level += 1) {
+    for (let level = 1; level <= 5; level += 1) {
       state.game.missions[level] = {
         ...defaultMissionState(level),
         ...(state.game.missions[level] || {}),
@@ -111,6 +113,10 @@
         }
       };
     }
+    Object.keys(state.game.missions).forEach(key => {
+      const num = Number(key);
+      if (!Number.isInteger(num) || num < 1 || num > 5) delete state.game.missions[key];
+    });
     return state.game;
   }
 
@@ -118,6 +124,15 @@
     ensureGameState(state);
     const mission = missions[level - 1];
     const saved = state.game.missions[level];
+    if (Number(level) === 1 && window.Level1Canvas) {
+      return window.Level1Canvas.render(mission, saved, state);
+    }
+    if (Number(level) === 2 && window.Level2Canvas) {
+      return window.Level2Canvas.render(mission, saved, state);
+    }
+    if (Number(level) === 3 && window.Level3Canvas) {
+      return window.Level3Canvas.render(mission, saved, state);
+    }
     const ticketSet = mission.type === "nested" ? ["half", "student", "full"] :
       mission.type === "custom" ? ["half", "custom", "full"] : ["half", "full"];
 
@@ -168,6 +183,7 @@
           <button class="secondary-button" id="game-step" disabled>单步运行</button>
           <button class="secondary-button" id="game-replay" ${saved.lastRun.length ? "" : "disabled"}>↺ 回放路径</button>
           <button class="secondary-button" id="game-reset">重新配置</button>
+          <button class="secondary-button game-fullscreen-btn" id="game-fullscreen">⛶ 全屏</button>
         </div>
 
         <div class="game-review">
@@ -175,6 +191,10 @@
             <span class="panel-title"><span>3</span> 通关复盘</span>
             <p>${mission.review}</p>
             <textarea id="game-review-text" rows="2" placeholder="写下你的发现，获得思考星">${escape(saved.review)}</textarea>
+            <div class="game-review-actions">
+              <button type="button" class="primary-button" id="game-review-submit">提交复盘</button>
+              <small id="game-review-status" aria-live="polite">提交后将重新评定思考星</small>
+            </div>
           </div>
           <div class="review-map">
             ${reviewMarkup(mission, saved)}
@@ -317,6 +337,18 @@
     ensureGameState(context.state);
     runtime = { paused: false, stopped: false, running: false, stepResolve: null };
     const saved = context.state.game.missions[level];
+    if (Number(level) === 1 && window.Level1Canvas) {
+      window.Level1Canvas.attach(level, context);
+      return;
+    }
+    if (Number(level) === 2 && window.Level2Canvas) {
+      window.Level2Canvas.attach(level, context);
+      return;
+    }
+    if (Number(level) === 3 && window.Level3Canvas) {
+      window.Level3Canvas.attach(level, context);
+      return;
+    }
 
     ["operator", "true-exit", "false-exit", "order", "custom-rule"].forEach(key => {
       const element = document.getElementById(`game-${key}`);
@@ -340,6 +372,9 @@
       if (context.syncThinking) context.syncThinking(context.level);
       else persist();
     });
+    document.getElementById("game-review-text").addEventListener("keydown", event => {
+      if ((event.ctrlKey || event.metaKey) && event.key === "Enter") submitReview();
+    });
     document.getElementById("game-muted").addEventListener("change", event => {
       context.state.game.muted = event.target.checked;
       persist();
@@ -353,6 +388,27 @@
     document.getElementById("game-step").addEventListener("click", stepOnce);
     document.getElementById("game-replay").addEventListener("click", replayLastRun);
     document.getElementById("game-reset").addEventListener("click", resetMission);
+    document.getElementById("game-review-submit").addEventListener("click", submitReview);
+    bindFullscreen();
+  }
+
+  function bindFullscreen() {
+    const button = document.getElementById("game-fullscreen");
+    if (!button) return;
+    const section = button.closest(".ticket-game");
+    const updateText = () => {
+      button.textContent = document.fullscreenElement === section ? "⛶ 退出全屏" : "⛶ 全屏";
+    };
+    button.addEventListener("click", () => {
+      if (document.fullscreenElement === section) {
+        document.exitFullscreen().catch(() => {});
+      } else if (section && section.requestFullscreen) {
+        section.requestFullscreen().catch(() => {});
+      }
+    });
+    if (fullscreenHandler) document.removeEventListener("fullscreenchange", fullscreenHandler);
+    fullscreenHandler = updateText;
+    document.addEventListener("fullscreenchange", fullscreenHandler);
   }
 
   function persist() {
@@ -381,6 +437,34 @@
     if (type === "custom") return saved.customRule && saved.order ? "" : "请先选择新增优惠和判断顺序。";
     if (!saved.operator || !saved.trueExit || !saved.falseExit) return "请先安装条件芯片，并设置“是/否”两个票口。";
     return "";
+  }
+
+  function submitReview() {
+    const saved = readControls();
+    const status = document.getElementById("game-review-status");
+    if (!saved.lastRun.length) {
+      status.textContent = "请先启动闸机，获得运行证据后再提交。";
+      return context.toast("请先完成一次闸机测试，再提交通关复盘。");
+    }
+    if (saved.review.length < 8) {
+      status.textContent = "还需写得更具体一些（至少 8 个字）。";
+      document.getElementById("game-review-text").focus();
+      return context.toast("复盘至少写 8 个字，并说明你观察到的条件或路径。");
+    }
+
+    if (context.syncThinking) context.syncThinking(context.level);
+    const thinking = context.evaluateThinking
+      ? Boolean(context.evaluateThinking(context.level))
+      : true;
+    saved.earned.thinking = thinking;
+    const stars = Number(saved.earned.accuracy) + Number(saved.earned.logic) + Number(thinking);
+    saved.bestStars = Math.max(saved.bestStars, stars);
+    persist();
+    status.textContent = thinking
+      ? "复盘已提交，获得思考星！"
+      : "已保存。请结合运行结果，并使用本关关键概念说明原因。";
+    showResult(stars, saved.earned.accuracy, saved.earned.logic, thinking);
+    context.toast(thinking ? "复盘提交成功，获得思考星！" : "复盘已保存，再补充运行证据和关键概念即可获得思考星。");
   }
 
   async function runMission() {
@@ -706,7 +790,7 @@
         ${starReason("逻辑星", logic, "条件与判断顺序正确")}
         ${starReason("思考星", thinking, "引用运行证据并用关键概念解释")}
       </div>
-      <p>本关最佳：${saved.bestStars}/3 星 · 累计：${totalStars(context.state)}/18 星</p>`;
+      <p>本关最佳：${saved.bestStars}/3 星 · 累计：${totalStars(context.state)}/15 星</p>`;
     if (stars > 0) beep(980, 0.12);
   }
 

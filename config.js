@@ -5,7 +5,7 @@ window.CAL_CONFIG = {
   videos: {
     "情景导入": "assets/videos/scenario-introduction.mp4",
     "知识讲解": "assets/videos/knowledge-explanation.mp4",
-    "古涛老师讲解": "assets/videos/teacher-gu-tao-lecture.mp4"
+    "老师讲解": "assets/videos/teacher-gu-tao-lecture.mp4"
   },
 
   // 填入学校允许使用的轻量 API 或在线表单接收地址。

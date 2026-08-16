@@ -5,7 +5,7 @@
     "flow-code-mismatch": { label: "流程图与代码不一致", level: 3, activity: "流程代码对应练习" },
     "nested-order": { label: "嵌套顺序错误", level: 5, activity: "嵌套结构复习" },
     indentation: { label: "代码层次不清", level: 5, activity: "缩进层次练习" },
-    "low-confidence": { label: "正确但信心不足", level: 6, activity: "迁移挑战" },
+    "low-confidence": { label: "正确但信心不足", level: 5, activity: "迁移挑战" },
     overconfidence: { label: "信心与结果不一致", level: 3, activity: "诊断性复习" }
   };
 
@@ -190,8 +190,8 @@
       branch: average([knowledgeScore(state, "branch"), scoreMission(state, 1, "accuracy"), scoreMission(state, 2, "logic")]),
       flowchart: average([knowledgeScore(state, "flowCode"), scoreMission(state, 2, "accuracy"), scoreMission(state, 3, "logic")]),
       boundary: average([knowledgeScore(state, "flowCode"), scoreMission(state, 4, "accuracy"), scoreMission(state, 4, "logic")]),
-      nested: average([knowledgeScore(state, "nested"), scoreMission(state, 5, "accuracy"), scoreMission(state, 5, "logic")]),
-      transfer: average([scoreMission(state, 6, "accuracy"), scoreMission(state, 6, "logic"), state.completed?.includes(6) ? 100 : 0])
+      nested: average([knowledgeScore(state, "nested"), scoreMission(state, 4, "logic"), state.completed?.includes(4) ? 100 : 0]),
+      transfer: average([scoreMission(state, 5, "accuracy"), scoreMission(state, 5, "logic"), state.completed?.includes(5) ? 100 : 0])
     };
 
     const quizPercent = state.quizSubmitted ? (Number(state.quizScore) || 0) / 5 * 100 : null;
@@ -241,11 +241,11 @@
       } else if ((model.mastery.nested || 0) < 70) {
         recommendations.push({ type: "nested-order", level: 5, title: "嵌套结构复习", reason: "用冲突游客检查两座闸机的先后顺序。", tone: "review" });
       } else {
-        recommendations.push({ type: "transfer", level: 6, title: "创意规则拓展", reason: "你已经掌握基础规则，可以设计新的优惠条件。", tone: "challenge" });
+        recommendations.push({ type: "transfer", level: 5, title: "创意规则拓展", reason: "你已经掌握基础规则，可以设计新的优惠条件。", tone: "challenge" });
       }
     }
-    if (recommendations.length < 2 && state.completed?.length >= 4 && !recommendations.some(item => item.level === 6)) {
-      recommendations.push({ type: "transfer", level: 6, title: "迁移挑战", reason: "把分支判断应用到新的生活规则。", tone: "challenge" });
+    if (recommendations.length < 2 && state.completed?.length >= 4 && !recommendations.some(item => item.level === 5)) {
+      recommendations.push({ type: "transfer", level: 5, title: "迁移挑战", reason: "把分支判断应用到新的生活规则。", tone: "challenge" });
     }
     return recommendations.slice(0, 2);
   }
@@ -280,15 +280,37 @@
 
   function thinkingEligible(state, level) {
     ensure(state);
+    if (Number(level) === 5 && state.project && window.CrossDisciplinaryLab) {
+      const project = window.CrossDisciplinaryLab.ensureProjectState(state.project);
+      const explanation = String(project.personalReflection || project.fairnessEvidence?.conflictExplanation || "").trim();
+      const cases = project.fairnessEvidence?.caseIds || [];
+      const hasEvidence = Array.isArray(project.datasetResults) && project.datasetResults.length >= 12 && cases.length >= 2;
+      return {
+        earned: hasEvidence && explanation.length >= 8 && project.revisions.length >= 1,
+        hasEvidence,
+        hasLength: explanation.length >= 8,
+        hasConcept: /数据|质疑|公平|收入|优惠|条件|顺序|边界|冲突|修改|修订/.test(explanation)
+      };
+    }
+    if (Number(level) === 4 && state.lab && window.RuleLab) {
+      const lab = window.RuleLab.ensureLab(state);
+      const text = `${lab.reflection || ""} ${lab.fairnessReason || ""}`.trim();
+      const hasEvidence = Boolean(lab.fairnessVisitor) && lab.reflection.trim().length >= 8;
+      return {
+        earned: hasEvidence && text.length >= 8 && /公平|证据|收入|优惠|边界|顺序|120|119|121/.test(text),
+        hasEvidence,
+        hasLength: text.length >= 8,
+        hasConcept: /公平|证据|收入|优惠|边界|顺序|120|119|121/.test(text)
+      };
+    }
     const explanation = String(state.worksheet?.entries?.[level]?.explanation || state.game?.missions?.[level]?.review || "").trim();
     const evidence = state.game?.missions?.[level]?.lastRun || [];
     const keywordRules = {
       1: /身高|条件|轨道|路径|票/,
       2: /菱形|是|否|路径|判断/,
       3: /流程图|菱形|if|else|代码|条件/,
-      4: /120|边界|小于|等于|119|121/,
-      5: /身高|学生证|先|顺序|嵌套|优先/,
-      6: /公平|条件|顺序|测试|优惠/
+      4: /120|边界|收入|优惠|公平|顺序|证据/,
+      5: /公平|条件|顺序|测试|优惠|收入|游客/
     };
     return {
       earned: evidence.length > 0 && explanation.length >= 8 && keywordRules[level].test(explanation),
@@ -305,11 +327,11 @@
     return `${visitor.name || "游客"}（${visitor.height || "?"}cm${visitor.student ? "、有学生证" : ""}）：实际${ticket(item.actual)}，应为${ticket(item.expected)}，${item.correct ? "结果正确" : "路径错误"}`;
   }
 
-  function exportV3(state) {
+  function exportV4(state) {
     const model = recalculate(state);
     return {
-      schemaVersion: 3,
-      title: "《分支判断：让选择变简单》学习记录",
+      schemaVersion: 4,
+      title: "《智慧乐园票价公约》跨学科学习记录",
       exportedAt: new Date().toISOString(),
       learner: { ...(state.learner || {}) },
       progress: {
@@ -328,19 +350,28 @@
         feedback: structuredClone(state.feedback || null),
         knowledge: structuredClone(state.knowledge || {})
       },
-      worksheet: structuredClone(state.worksheet || {})
+      worksheet: structuredClone(state.worksheet || {}),
+      project: structuredClone(state.project || null)
     };
   }
 
   function normalizeRecord(raw) {
     if (!raw || typeof raw !== "object") throw new Error("记录格式无效");
-    if (Number(raw.schemaVersion) === 3) return raw;
+    if (Number(raw.schemaVersion) === 4) return raw;
+    if (Number(raw.schemaVersion) === 3) {
+      return {
+        ...raw,
+        schemaVersion: 4,
+        migratedFrom: 3,
+        project: { legacyReadOnly: true, note: "该记录来自v3，仅保留旧版创意任务与学习证据。" }
+      };
+    }
     const source = raw.state && typeof raw.state === "object" ? raw.state : raw;
     const missions = source.game?.missions || {};
     const completed = source.completed || [];
     const totalStars = Object.values(missions).reduce((sum, mission) => sum + Number(mission?.bestStars || 0), 0);
     return {
-      schemaVersion: 3,
+      schemaVersion: 4,
       migratedFrom: Number(raw.schemaVersion || source.worksheet?.version || 2),
       title: raw.title || "旧版分支判断学习记录",
       exportedAt: raw.exportedAt || new Date(0).toISOString(),
@@ -356,7 +387,8 @@
         feedback: source.feedback || null,
         knowledge: source.knowledge || {}
       },
-      worksheet: source.worksheet || {}
+      worksheet: source.worksheet || {},
+      project: { legacyReadOnly: true, note: "该记录由v2或更早版本迁移，仅保留旧版学习证据。" }
     };
   }
 
@@ -371,7 +403,8 @@
     currentDiagnosis,
     thinkingEligible,
     evidenceText,
-    exportV3,
+    exportV4,
+    exportV3: exportV4,
     normalizeRecord
   };
 })();

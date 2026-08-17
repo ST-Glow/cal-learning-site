@@ -2983,8 +2983,31 @@ body[data-current-page="map"][data-current-level="5"] .live2d-assistant,
 body[data-current-page="map"][data-current-level="5"] .lesson-badge {
   display: none;
 }
-body[data-current-page="evaluation"] .live2d-assistant {
+/* Evaluation and performance are frequently switched back and forth. Keep the
+   teacher at one compact size so PIXI never has to recover from display:none. */
+body:is([data-current-page="evaluation"], [data-current-page="performance"]) .live2d-assistant {
+  display: block;
+  width: 118px;
+  height: 168px;
+  right: 8px;
+  bottom: 60px;
+}
+body:is([data-current-page="evaluation"], [data-current-page="performance"]) .live2d-character {
+  width: 116px;
+  height: 164px;
+}
+body:is([data-current-page="evaluation"], [data-current-page="performance"]) .live2d-greeting {
   display: none;
+}
+body:is([data-current-page="evaluation"], [data-current-page="performance"]) .live2d-name {
+  right: 2px;
+  bottom: 0;
+  padding: 4px 8px;
+  font-size: 10px;
+}
+body:is([data-current-page="evaluation"], [data-current-page="performance"]) .assistant-panel {
+  right: 102px;
+  bottom: 174px;
 }
 
 /* Keep the digital teacher visible and consistently fitted throughout the

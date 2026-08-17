@@ -268,6 +268,7 @@ function switchPage(page, options = {}) {
   updateAssistantContext();
   if (!options.transient) saveState();
   window.scrollTo({ top: 0, behavior: options.instant ? "auto" : "smooth" });
+  requestAnimationFrame(() => requestAnimationFrame(() => window.Live2DAssistant?.refreshLayout?.()));
 }
 
 function capturePresentationState() {

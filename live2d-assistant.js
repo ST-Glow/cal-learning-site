@@ -41,8 +41,12 @@
   function fitModel(canvas) {
     if (!model) return;
     const character = canvas.closest(".live2d-character");
-    const width = character?.clientWidth || canvas.clientWidth || 220;
-    const height = character?.clientHeight || canvas.clientHeight || 300;
+    const width = character?.clientWidth || canvas.clientWidth;
+    const height = character?.clientHeight || canvas.clientHeight;
+    // A display:none page reports a zero-size box. Resizing PIXI with a
+    // fallback size here makes the model appear cropped when the next page
+    // shows the assistant again, so wait for a real visible box instead.
+    if (!width || !height) return;
     app.renderer.resize(width, height);
     const originalWidth = model.internalModel?.originalWidth || model.width || 1;
     const originalHeight = model.internalModel?.originalHeight || model.height || 1;

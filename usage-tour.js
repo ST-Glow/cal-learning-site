@@ -10,27 +10,86 @@
   const presentationSteps = [
     {
       page: "home",
-      selector: ".hero-copy",
+      selector: ".hero",
       title: "01 真实任务：从票价冲突出发",
-      text: "项目面向小学五年级。学生不是记住一条票价规则，而是要把规则写成计算机能执行、游客能看懂的票价公约。",
-      placement: "right"
+      text: "项目面向小学五年级，用智慧乐园售票冲突提出驱动问题。学生最终不是记住一个答案，而是要设计一套计算机能执行、数学上可检验、游客能理解的票价公约。",
+      placement: "bottom"
+    },
+    {
+      page: "home",
+      selector: "#home-route-preview",
+      title: "02 学习全景：三课时四阶段",
+      text: "课程依次经历情境导入、新知讲解、跨学科探究和项目评价。五个递进任务把生活规则、流程图、代码、边界测试与公约设计连成一条完整学习路径。",
+      placement: "top"
+    },
+    {
+      page: "home",
+      selector: "#assistant-button",
+      title: "03 CAL支架：提示而不代替思考",
+      text: "小柿老师会结合当前关卡、知识检查和错误记录提供追问式帮助。支架按“方向提示—关键线索—半成品”逐级出现，帮助学生自己修正，而不是直接生成完整答案。",
+      placement: "left"
     },
     {
       page: "map",
       level: 1,
       view: "challenge",
       selector: ".level1-game .track-board",
-      title: "02 情境游戏：看见条件与路径",
-      text: "学生先预测游客应走哪条岔道，再运行闸机验证。游戏把“条件—真假路径—出票结果”变成可观察、可重试的过程。",
+      title: "04 情境游戏：看见条件与路径",
+      text: "学生先观察游客身高并预测票种，再安装条件芯片、选择“是／否”出口并启动闸机。游戏把抽象的“条件—真假路径—出票结果”变成可观察、可操作、可重试的过程。",
       placement: "top"
+    },
+    {
+      page: "map",
+      level: 2,
+      view: "learn",
+      selector: ".knowledge-courseware",
+      title: "05 新知讲解：从规则抽象出双分支",
+      text: "学生先阅读校正版课件，理解条件成立与不成立会进入两条不同路径，并认识开始框、输入框、判断菱形、操作框和箭头。这里先建立概念，再进入游戏操作。",
+      placement: "right"
+    },
+    {
+      page: "map",
+      level: 2,
+      view: "learn",
+      selector: ".knowledge-guide",
+      title: "06 掌握学习：知识检查连接补学",
+      text: "右侧把本节知识压缩成两条关键结论，并配有数字人讲解和两道即时检查题。答错后会显示解释，学生可以返回课件补学、重新作答，再进入闸机挑战。",
+      placement: "left"
+    },
+    {
+      page: "map",
+      level: 2,
+      view: "challenge",
+      selector: ".level2-game .track-board",
+      title: "07 流程图搭建：让结构真正运行",
+      text: "学生不是照抄流程图，而是拖放节点、连接“是／否”分支，再让116cm与120cm游客实际运行。系统用路径回放指出缺少节点、出口错误或边界混淆。",
+      placement: "top"
+    },
+    {
+      page: "map",
+      level: 3,
+      view: "learn",
+      selector: ".knowledge-courseware",
+      title: "08 新知进阶：流程图对应if／else",
+      text: "第二组新知把判断菱形对应到if条件，把两条流程路径对应到if与else代码块。学生同时学习缩进、执行顺序，以及统一规则height < 120的准确写法。",
+      placement: "right"
+    },
+    {
+      page: "map",
+      level: 3,
+      view: "learn",
+      selector: ".knowledge-guide",
+      title: "09 边界知识：119／120／121为什么重要",
+      text: "知识检查专门追问120cm应走哪条路径，引导学生区分“小于”和“小于等于”。119、120、121三个相邻值随后会成为检验算法是否准确的最小测试组。",
+      placement: "left"
     },
     {
       page: "map",
       level: 3,
       view: "challenge",
       selector: ".level3-game .track-board",
-      title: "03 图码联动：把路径写成算法",
-      text: "同一个身高同时经过流程图和 if/else 代码，节点与代码行同步高亮，帮助学生建立图形表示和符号表示之间的联系。",
+      title: "10 图码联动：把路径写成算法",
+      text: "同一个游客同时经过流程图和if／else代码，节点与代码行同步高亮。学生要先预测、再运行、最后补全代码，从而建立生活语言、图形表示和程序表示之间的对应关系。",
       placement: "top"
     },
     {
@@ -38,8 +97,8 @@
       level: 4,
       view: "challenge",
       selector: ".rule-lab",
-      title: "04 跨学科探究：用证据检验规则",
-      text: "学生用119、120、121厘米排查边界错误，再比较不同判断顺序造成的票种、收入和公平差异。",
+      title: "11 跨学科探究：用证据检验规则",
+      text: "规则实验室把知识带入真实约束：学生用119、120、121厘米排查边界错误，再比较“先身高”与“先身份”造成的票种、收入和受影响游客差异，并写出公平解释。",
       placement: "top"
     },
     {
@@ -48,8 +107,8 @@
       view: "challenge",
       projectStep: 1,
       selector: ".project-step-nav",
-      title: "05 四步项目脚手架",
-      text: "小组依次完成设计规则、数学检查、公平说明和同伴修改。每一步只解决一个问题，降低五年级学生的认知负担。",
+      title: "12 项目任务：四步完成票价公约",
+      text: "小组依次完成设计规则、数学检查、公平说明和同伴修改。条件构建器把变量、比较符、票价、优先级与默认票拆开呈现，每一步只解决一个核心问题，降低五年级学生的认知负担。",
       placement: "top"
     },
     {
@@ -58,8 +117,8 @@
       view: "challenge",
       projectStep: 2,
       selector: ".project-metrics",
-      title: "06 数学证据：数据必须改变方案",
-      text: "系统运行12名游客，自动计算总收入、优惠人数、冲突案例和边界覆盖。未达到160元或5人优惠时，学生必须返回修改算法。",
+      title: "13 数学证据：数据必须改变方案",
+      text: "系统批量运行12名公开游客，自动计算逐人票价、总收入、优惠人数、冲突数和边界覆盖率。若收入低于160元、优惠少于5人或结果不唯一，方案就不能通过，学生必须返回修改。",
       placement: "top"
     },
     {
@@ -68,8 +127,8 @@
       view: "challenge",
       projectStep: 3,
       selector: ".fairness-lab",
-      title: "07 公平证据：不能只写“我觉得”",
-      text: "学生至少引用两名具体游客，说明相同条件是否得到一致结果，以及多项优惠冲突时为什么采用当前优先顺序。",
+      title: "14 公平证据：不能只写“我觉得”",
+      text: "学生必须引用至少两名具体游客，说明相同条件的人是否得到一致结果、边界是否清晰、无关差别是否被排除，以及同时满足多项优惠时为什么采用当前优先顺序。",
       placement: "top"
     },
     {
@@ -78,22 +137,29 @@
       view: "challenge",
       projectStep: 4,
       selector: ".audit-lab",
-      title: "08 同伴反例：让质疑推动修订",
-      text: "另一小组用隐藏冲突案例发起反例挑战，原小组记录修改前后规则和理由，形成可以追溯的调试证据链。",
+      title: "15 同伴反例：让质疑推动修订",
+      text: "另一小组使用隐藏边界或多条件冲突案例发起反例挑战，指出问题类型并提出建议。原小组必须保留修改前规则、修改后规则与理由，形成可以追溯的算法调试证据链。",
+      placement: "top"
+    },
+    {
+      page: "worksheet",
+      selector: ".worksheet-layout",
+      title: "16 过程证据：电子任务单持续成长",
+      text: "任务单不是课后补填，而是贯穿学习全过程，自动汇总每关预测、知识要点、错误订正、数学计算、公平论证和修订记录。学生可以继续修改，也可以打印或导出作品证据。",
       placement: "top"
     },
     {
       page: "evaluation",
       selector: ".evaluation-layout",
-      title: "09 学习评价：小组成果与个人理解并重",
-      text: "评价按信息科技60分、数学25分、社会责任15分组织，同时保留个人小测、自评和反思，避免只评价最终答案。",
+      title: "17 学习评价：小组成果与个人理解并重",
+      text: "评价按信息科技60分、数学25分、社会责任15分组织，既检查方案能否运行，也检查计算证据、公平案例和修订过程；同时保留个人小测、自评与反思，避免只评价小组最终答案。",
       placement: "top"
     },
     {
       page: "teacher",
       selector: ".teacher-dashboard",
-      title: "10 教师诊断：看见跨学科证据",
-      text: "教师端汇总逻辑正确率、边界覆盖、收入约束、公平证据和修订次数，为补学建议和后续教学调整提供依据。",
+      title: "18 教师诊断：看见跨学科证据",
+      text: "教师端汇总知识掌握、逻辑正确率、边界覆盖、收入约束、公平证据和修订次数，既能查看全班趋势，也能定位具体学习困难，为分层补学、小组指导和后续教学调整提供依据。",
       placement: "top"
     }
   ];

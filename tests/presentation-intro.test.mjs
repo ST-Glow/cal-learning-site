@@ -16,15 +16,21 @@ test("介绍页包含7页汇报与自动讲解入口", async () => {
   assert.match(source, /document\.body\.classList\.toggle\('image-slide'/);
 });
 
-test("项目讲解精简为10步跨学科证据路线", async () => {
+test("项目讲解覆盖18步完整跨学科学习路线", async () => {
   const source = await read("usage-tour.js");
   const block = source.match(/const presentationSteps = \[[\s\S]*?\n  \];/)?.[0] || "";
-  assert.equal((block.match(/title: "/g) || []).length, 10);
+  assert.equal((block.match(/title: "/g) || []).length, 18);
   for (const selector of [
+    "#home-route-preview",
+    "#assistant-button",
     ".level1-game .track-board",
+    ".knowledge-courseware",
+    ".knowledge-guide",
+    ".level2-game .track-board",
     ".level3-game .track-board",
     ".rule-lab",
     ".project-metrics",
+    ".worksheet-layout",
     ".evaluation-layout",
     ".teacher-dashboard"
   ]) {

@@ -7,6 +7,7 @@
     nested: "嵌套",
     transfer: "迁移应用"
   };
+  const teacherExcludedErrorTypes = new Set(["low-confidence", "overconfidence"]);
 
   let records = load();
   if (localStorage.getItem(STORAGE_KEY) === null) persist();
@@ -24,30 +25,28 @@
 
   function createDemoRecords() {
     const learners = [
-      ["202601", "林晓雨", 5, 14, 5, [92, 90, 88, 84, 78], "", "", 0],
-      ["202602", "陈子涵", 5, 13, 4, [88, 85, 74, 82, 76], "boundary-confusion", "", 2],
-      ["202603", "王一诺", 4, 11, 4, [82, 78, 72, 68, 60], "nested-order", "", 2],
-      ["202604", "李明轩", 4, 10, 3, [76, 70, 64, 62, 55], "flow-code-mismatch", "overconfidence", 3],
-      ["202605", "周可欣", 5, 12, 5, [86, 82, 80, 75, 72], "low-confidence", "low-confidence", 1],
-      ["202606", "赵宇辰", 4, 9, 3, [72, 68, 58, 52, 45], "boundary-confusion", "", 3],
-      ["202607", "孙诗琪", 3, 8, 2, [66, 62, 54, 48, 42], "branch-direction", "overconfidence", 4],
-      ["202608", "吴嘉乐", 4, 10, 4, [80, 76, 70, 66, 58], "indentation", "", 2],
-      ["202609", "郑雨桐", 3, 7, 3, [68, 60, 52, 40, 35], "flow-code-mismatch", "", 3],
-      ["202610", "何俊熙", 5, 15, 5, [96, 94, 92, 90, 86], "", "", 0],
-      ["202611", "冯思源", 4, 8, 3, [70, 65, 56, 50, 44], "boundary-confusion", "", 4],
-      ["202612", "蒋依晨", 4, 10, 4, [78, 74, 68, 64, 57], "nested-order", "low-confidence", 2]
+      ["202601", "林晓雨", 5, 14, 5, [92, 90, 88, 84, 78], "", 0],
+      ["202602", "陈子涵", 5, 13, 4, [88, 85, 74, 82, 76], "boundary-confusion", 2],
+      ["202603", "王一诺", 4, 11, 4, [82, 78, 72, 68, 60], "nested-order", 2],
+      ["202604", "李明轩", 4, 10, 3, [76, 70, 64, 62, 55], "flow-code-mismatch", 3],
+      ["202605", "周可欣", 5, 12, 5, [86, 82, 80, 75, 72], "", 0],
+      ["202606", "赵宇辰", 4, 9, 3, [72, 68, 58, 52, 45], "boundary-confusion", 3],
+      ["202607", "孙诗琪", 3, 8, 2, [66, 62, 54, 48, 42], "branch-direction", 4],
+      ["202608", "吴嘉乐", 4, 10, 4, [80, 76, 70, 66, 58], "indentation", 2],
+      ["202609", "郑雨桐", 3, 7, 3, [68, 60, 52, 40, 35], "flow-code-mismatch", 3],
+      ["202610", "何俊熙", 5, 15, 5, [96, 94, 92, 90, 86], "", 0],
+      ["202611", "冯思源", 4, 8, 3, [70, 65, 56, 50, 44], "boundary-confusion", 4],
+      ["202612", "蒋依晨", 4, 10, 4, [78, 74, 68, 64, 57], "nested-order", 2]
     ];
     const activities = {
       "boundary-confusion": ["边界值专项练习", 4],
       "branch-direction": ["双分支基础补学", 2],
       "flow-code-mismatch": ["流程代码对应练习", 3],
       "nested-order": ["嵌套结构复习", 5],
-      indentation: ["缩进层次练习", 5],
-      "low-confidence": ["迁移挑战", 5],
-      overconfidence: ["诊断性复习", 3]
+      indentation: ["缩进层次练习", 5]
     };
 
-    return learners.map(([id, name, completedCount, stars, quizScore, mastery, mainError, confidenceGap, errorCount], index) => {
+    return learners.map(([id, name, completedCount, stars, quizScore, mastery, mainError, errorCount], index) => {
       const completed = Array.from({ length: completedCount }, (_, item) => item + 1);
       const errorTypes = {};
       if (mainError) {
@@ -58,9 +57,6 @@
           active: true,
           lastSeen: `2026-06-${String(12 - (index % 5)).padStart(2, "0")}T08:30:00.000Z`
         };
-      }
-      if (confidenceGap && confidenceGap !== mainError) {
-        errorTypes[confidenceGap] = { count: 1, hintLevel: 1, levels: [], active: true };
       }
       const recommendation = activities[mainError] || (completedCount === 5 ? ["创意规则拓展", 5] : ["继续当前学习路径", completedCount + 1]);
       const missions = Object.fromEntries([1, 2, 3, 4, 5].map(level => [
@@ -78,7 +74,6 @@
         diagnostics: {
           mastery: { branch: mastery[0], flowchart: mastery[1], boundary: mastery[2], nested: mastery[3], transfer: mastery[4] },
           errorTypes,
-          confidenceGap,
           recommendations: [{ type: mainError || "transfer", level: recommendation[1], title: recommendation[0] }]
         },
         assessment: { quizSubmitted: true, quizScore, quiz: {}, selfRating: {}, feedback: null, knowledge: {} },
@@ -157,15 +152,24 @@
     });
     const errors = {};
     records.forEach(record => Object.entries(record.diagnostics?.errorTypes || {}).forEach(([key, value]) => {
+      if (teacherExcludedErrorTypes.has(key)) return;
       errors[key] = (errors[key] || 0) + Number(value?.count || 0);
     }));
     const errorRanking = Object.entries(errors).sort((a, b) => b[1] - a[1]);
-    const confidence = {
-      low: records.filter(record => record.diagnostics?.confidenceGap === "low-confidence"),
-      highWrong: records.filter(record => record.diagnostics?.confidenceGap === "overconfidence")
-    };
     const boundaryMistakes = records.filter(record => record.diagnostics?.errorTypes?.["boundary-confusion"]?.count > 0).length;
     const projectRecords = records.filter(record => record.project && !record.project.legacyReadOnly);
+    const evidenceDimensions = [
+      ["算法运行结果", record => Boolean(record.project?.metrics)],
+      ["数学计算证据", record => Number.isFinite(Number(record.project?.metrics?.totalIncome)) && Number.isFinite(Number(record.project?.metrics?.discountedCount))],
+      ["公平案例证据", record => (record.project?.fairnessEvidence?.caseIds || []).length >= 2 && String(record.project?.fairnessEvidence?.principle || "").trim().length >= 8],
+      ["同伴审查记录", record => String(record.project?.peerAudit?.counterexample || "").trim().length > 0 && String(record.project?.peerAudit?.suggestion || "").trim().length > 0],
+      ["有理由的修订", record => (record.project?.revisions || []).some(item => String(item?.reason || "").trim().length > 0)]
+    ];
+    const evidence = evidenceDimensions.map(([label, predicate]) => ({
+      label,
+      rate: projectRecords.length ? Math.round(projectRecords.filter(predicate).length / projectRecords.length * 100) : 0
+    }));
+    const evidenceCompleteness = average(evidence.map(item => item.rate));
     const project = {
       count: projectRecords.length,
       logicCorrectness: average(projectRecords.map(record => record.project?.metrics?.uniqueOutcomes ? 100 : 0)),
@@ -175,7 +179,7 @@
       fairnessEvidenceRate: projectRecords.length ? Math.round(projectRecords.filter(record => (record.project?.fairnessEvidence?.caseIds || []).length >= 2 && String(record.project?.fairnessEvidence?.principle || "").trim().length >= 8).length / projectRecords.length * 100) : 0,
       averageRevisions: projectRecords.length ? (projectRecords.reduce((sum, record) => sum + Number(record.project?.revisions?.length || 0), 0) / projectRecords.length).toFixed(1) : "0.0"
     };
-    return { count, completedRate, averageStars, averageQuiz, mastery, levels, errorRanking, confidence, boundaryMistakes, project };
+    return { count, completedRate, averageStars, averageQuiz, mastery, levels, errorRanking, evidence, evidenceCompleteness, boundaryMistakes, project };
   }
 
   function render(container) {
@@ -242,10 +246,11 @@
               <div><span>${index + 1}</span><strong>${errorMeta[key]?.label || key}</strong><b>${count} 次</b></div>`).join("") : "<p>暂未记录到错误类型。</p>"}
           </div>
         </section>
-        <section class="teacher-panel confidence-panel">
-          <div class="teacher-panel-heading"><div><span class="eyebrow">CONFIDENCE</span><h3>信心与成绩差异</h3></div><small>用于针对性鼓励和复习</small></div>
-          ${studentList("正确但信心不足", data.confidence.low)}
-          ${studentList("高信心但需复习", data.confidence.highWrong)}
+        <section class="teacher-panel evidence-panel">
+          <div class="teacher-panel-heading"><div><span class="eyebrow">EVIDENCE</span><h3>项目证据完整度</h3></div><small>平均完整度 ${data.evidenceCompleteness}%</small></div>
+          <div class="dashboard-bars">
+            ${data.evidence.map(item => barRow(item.label, item.rate, `${item.rate}%`)).join("")}
+          </div>
         </section>
       </div>
       <section class="teacher-panel student-table-panel">
@@ -267,13 +272,10 @@
     return `<div class="dashboard-bar"><span>${label}</span><i><b style="width:${value}%"></b></i><strong>${display}</strong></div>`;
   }
 
-  function studentList(title, list) {
-    return `<div class="confidence-list"><strong>${title}<span>${list.length}</span></strong>
-      <p>${list.length ? list.map(record => escape(record.learner?.name || record.learner?.id || "未命名")).join("、") : "暂无"}</p></div>`;
-  }
-
   function studentRow(record) {
-    const errors = Object.entries(record.diagnostics?.errorTypes || {}).sort((a, b) => Number(b[1]?.count || 0) - Number(a[1]?.count || 0));
+    const errors = Object.entries(record.diagnostics?.errorTypes || {})
+      .filter(([key]) => !teacherExcludedErrorTypes.has(key))
+      .sort((a, b) => Number(b[1]?.count || 0) - Number(a[1]?.count || 0));
     const error = errors[0]?.[0];
     const recommendations = (record.diagnostics?.recommendations || []).map(item => item.title).join("、") || "继续当前路径";
     return `<tr>
@@ -303,7 +305,9 @@
   function exportCsv() {
     const headings = ["学生编号", "姓名", "班级", "小组", "完成关卡", "星数", "测验成绩", "项目收入", "优惠人数", "边界覆盖率", "冲突解决", "公平案例数", "修订次数", "主要错误", "推荐任务"];
     const rows = records.map(record => {
-      const errors = Object.entries(record.diagnostics?.errorTypes || {}).sort((a, b) => Number(b[1]?.count || 0) - Number(a[1]?.count || 0));
+      const errors = Object.entries(record.diagnostics?.errorTypes || {})
+        .filter(([key]) => !teacherExcludedErrorTypes.has(key))
+        .sort((a, b) => Number(b[1]?.count || 0) - Number(a[1]?.count || 0));
       return [
         record.learner?.id || "",
         record.learner?.name || "",

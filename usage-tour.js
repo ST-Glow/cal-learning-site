@@ -210,6 +210,7 @@
     previousOverflow = document.body.style.overflow;
     presentationSnapshot = mode === "presentation" ? window.CAL_CAPTURE_PRESENTATION_STATE?.() : null;
     closePanels();
+    document.body.classList.toggle("presentation-tour-active", mode === "presentation");
     document.body.style.overflow = "hidden";
     const ui = elements();
     ui.root.dataset.mode = nextMode;
@@ -288,6 +289,7 @@
     ui.spotlight.style.width = `${width}px`;
     ui.spotlight.style.height = `${height}px`;
     positionCard(ui.card, { left, top, width, height }, step.placement);
+    window.Live2DAssistant?.refreshLayout?.();
   }
 
   function showMissingTarget(step) {
@@ -357,11 +359,13 @@
     visible = false;
     renderToken += 1;
     elements().root.classList.add("hidden");
+    document.body.classList.remove("presentation-tour-active");
     window.CAL_CLOSE_MODALS?.();
     document.body.style.overflow = previousOverflow;
     if (finishedMode === "presentation") {
       window.CAL_RESTORE_PRESENTATION_STATE?.(presentationSnapshot, { returnHome: completed });
       presentationSnapshot = null;
+      window.setTimeout(() => window.Live2DAssistant?.refreshLayout?.(), 80);
     } else {
       window.CAL_TOUR_FINISHED?.();
     }

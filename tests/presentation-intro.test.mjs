@@ -49,12 +49,17 @@ test("汇报讲解提供放大卡片和可收起演示模式", async () => {
 });
 
 test("数字人画布跟随容器缩放并保留完整人物", async () => {
-  const [styles, assistant] = await Promise.all([read("styles.css"), read("live2d-assistant.js")]);
+  const [styles, assistant, tour] = await Promise.all([read("styles.css"), read("live2d-assistant.js"), read("usage-tour.js")]);
   assert.match(styles, /width: 100% !important/);
   assert.match(styles, /height: 100% !important/);
   assert.match(assistant, /character\?\.clientWidth/);
   assert.match(assistant, /\* 0\.96/);
   assert.match(assistant, /resizeObserver\.observe\(character \|\| canvas\)/);
+  assert.match(assistant, /function refreshLayout\(\)/);
+  assert.match(styles, /body\.presentation-tour-active:not\(\[data-current-page="home"\]\) \.live2d-assistant/);
+  assert.match(styles, /display: block !important/);
+  assert.match(tour, /classList\.toggle\("presentation-tour-active"/);
+  assert.match(tour, /Live2DAssistant\?\.refreshLayout/);
 });
 
 test("首屏使用轻量图片并延迟加载数字人资源", async () => {

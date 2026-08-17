@@ -103,6 +103,12 @@
     return initPromise;
   }
 
+  function refreshLayout() {
+    const canvas = document.getElementById("live2d-canvas");
+    if (!canvas || !model || !app) return;
+    requestAnimationFrame(() => fitModel(canvas));
+  }
+
   function scheduleInit() {
     if (scheduled) return;
     scheduled = true;
@@ -136,5 +142,5 @@
     setTimeout(() => setSpeaking(false), 2400);
   }
 
-  window.Live2DAssistant = { ensureLoaded, init: ensureLoaded, scheduleInit, setSpeaking };
+  window.Live2DAssistant = { ensureLoaded, init: ensureLoaded, refreshLayout, scheduleInit, setSpeaking };
 })();

@@ -2986,6 +2986,33 @@ body[data-current-page="map"][data-current-level="5"] .lesson-badge {
 body[data-current-page="evaluation"] .live2d-assistant {
   display: none;
 }
+
+/* Keep the digital teacher visible and consistently fitted throughout the
+   presentation route, including project and evaluation views that normally
+   hide it to give students more workspace. */
+body.presentation-tour-active .live2d-assistant {
+  z-index: 203;
+}
+body.presentation-tour-active:not([data-current-page="home"]) .live2d-assistant {
+  display: block !important;
+  width: 118px;
+  height: 168px;
+  right: 8px;
+  bottom: 60px;
+}
+body.presentation-tour-active:not([data-current-page="home"]) .live2d-character {
+  width: 116px;
+  height: 164px;
+}
+body.presentation-tour-active:not([data-current-page="home"]) .live2d-greeting {
+  display: none;
+}
+body.presentation-tour-active:not([data-current-page="home"]) .live2d-name {
+  right: 2px;
+  bottom: 0;
+  padding: 4px 8px;
+  font-size: 10px;
+}
 body[data-current-page="map"][data-current-level="5"] .lesson-card {
   padding: clamp(16px, 2.5vw, 26px);
   border-radius: 16px;

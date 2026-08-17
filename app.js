@@ -2215,6 +2215,7 @@ function initEvents() {
   document.getElementById("print-worksheet").addEventListener("click", () => window.print());
   document.getElementById("export-worksheet").addEventListener("click", exportRecord);
   document.getElementById("assistant-button").addEventListener("click", () => {
+    window.Live2DAssistant?.ensureLoaded?.();
     const panel = document.getElementById("assistant-panel");
     panel.classList.toggle("hidden");
     renderAssistantWelcome();
@@ -2265,7 +2266,7 @@ function init() {
   window.UsageTour?.init();
   initEvents();
   document.getElementById("assistant-title").textContent = window.CAL_CONFIG?.assistantName || "小柿老师";
-  window.Live2DAssistant?.init();
+  window.Live2DAssistant?.scheduleInit?.();
   updateGlobalUI();
   updateAssistantContext();
   switchPage(state.currentPage || "home", { instant: true });

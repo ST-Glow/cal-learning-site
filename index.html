@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="面向小学五年级的信息科技、数学与社会责任跨学科CAL微项目">
   <title>智慧乐园票价公约：让算法兼顾公平与可持续</title>
+  <link rel="preload" as="image" href="assets/images/smart-ticket-park.webp" type="image/webp" fetchpriority="high">
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
@@ -55,7 +56,7 @@
           </div>
         </div>
         <div class="hero-scene" aria-label="两名小学生在智慧乐园智能售票站接受训练">
-          <img class="hero-illustration" src="assets/images/smart-ticket-park.png" alt="男生和女生在游乐园的机器人售票站前买票">
+          <img class="hero-illustration" src="assets/images/smart-ticket-park.webp" width="1624" height="969" fetchpriority="high" decoding="async" alt="男生和女生在游乐园的机器人售票站前买票">
           <div class="hero-decision" aria-label="示例判断条件：身高小于120厘米">
             <span>身高<br>&lt; 120cm？</span>
           </div>
@@ -391,7 +392,7 @@
     <button class="live2d-character" id="assistant-button" type="button" aria-label="打开小柿老师对话">
       <span class="live2d-greeting" id="live2d-greeting">遇到困难就点我吧！</span>
       <canvas id="live2d-canvas" width="440" height="600" aria-hidden="true"></canvas>
-      <span class="live2d-fallback hidden" id="live2d-fallback" aria-hidden="true">柿</span>
+      <span class="live2d-fallback" id="live2d-fallback" aria-hidden="true">柿</span>
       <strong class="live2d-name">小柿老师</strong>
     </button>
   </div>
@@ -401,7 +402,10 @@
     <div class="tour-guide-card" id="tour-guide-card" role="dialog" aria-modal="true" aria-labelledby="tour-guide-title">
       <div class="tour-guide-top">
         <span id="tour-guide-count">1 / 5</span>
-        <button type="button" id="tour-skip">跳过引导</button>
+        <div class="tour-guide-tools">
+          <button type="button" id="tour-collapse" aria-expanded="true">收起说明</button>
+          <button type="button" id="tour-skip">跳过引导</button>
+        </div>
       </div>
       <span class="eyebrow">QUICK GUIDE</span>
       <h2 id="tour-guide-title">欢迎来到智慧乐园</h2>
@@ -449,21 +453,18 @@
   </section>
 
   <div class="toast-region" id="toast-region" aria-live="polite"></div>
-  <script src="assets/live2d/vendor/live2dcubismcore.min.js"></script>
-  <script src="assets/live2d/vendor/pixi.min.js"></script>
-  <script src="assets/live2d/vendor/cubism4.min.js"></script>
-  <script src="config.js"></script>
-  <script src="learning-model.js"></script>
-  <script src="cross-disciplinary-lab.js"></script>
-  <script src="rule-lab.js"></script>
-  <script src="level1-canvas.js"></script>
-  <script src="level2-canvas.js"></script>
-  <script src="level3-canvas.js"></script>
-  <script src="ticket-game.js"></script>
-  <script src="teacher-dashboard.js"></script>
-  <script src="performance-dashboard.js"></script>
-  <script src="live2d-assistant.js"></script>
-  <script src="usage-tour.js"></script>
-  <script src="app.js"></script>
+  <script defer src="config.js"></script>
+  <script defer src="learning-model.js"></script>
+  <script defer src="cross-disciplinary-lab.js"></script>
+  <script defer src="rule-lab.js"></script>
+  <script defer src="level1-canvas.js"></script>
+  <script defer src="level2-canvas.js"></script>
+  <script defer src="level3-canvas.js"></script>
+  <script defer src="ticket-game.js"></script>
+  <script defer src="teacher-dashboard.js"></script>
+  <script defer src="performance-dashboard.js"></script>
+  <script defer src="live2d-assistant.js"></script>
+  <script defer src="usage-tour.js"></script>
+  <script defer src="app.js"></script>
 </body>
 </html>

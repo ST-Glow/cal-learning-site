@@ -229,6 +229,15 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
   transition: top 0.28s ease, left 0.28s ease, width 0.28s ease, height 0.28s ease;
 }
 
+.usage-tour[data-mode="presentation"] .tour-spotlight {
+  border-width: 6px;
+  border-radius: 26px;
+  box-shadow:
+    0 0 0 9999px rgba(11, 29, 50, 0.7),
+    0 0 0 9px rgba(255, 255, 255, 0.94),
+    0 16px 44px rgba(11, 29, 50, 0.32);
+}
+
 .tour-guide-card {
   position: fixed;
   z-index: 202;
@@ -259,6 +268,12 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
   gap: 12px;
 }
 
+.tour-guide-tools {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
 .tour-guide-top {
   margin-bottom: 14px;
   color: #50708d;
@@ -266,6 +281,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
   font-weight: 800;
 }
 
+#tour-collapse,
 #tour-skip {
   border: 0;
   background: transparent;
@@ -274,6 +290,8 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
   cursor: pointer;
 }
 
+#tour-collapse:hover,
+#tour-collapse:focus-visible,
 #tour-skip:hover,
 #tour-skip:focus-visible {
   color: #ef6d32;
@@ -304,6 +322,96 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 
 .tour-guide-actions button {
   min-width: 112px;
+}
+
+.usage-tour[data-mode="presentation"] .tour-guide-card {
+  padding: 28px 30px;
+  border-width: 3px;
+  border-radius: 28px;
+}
+
+.usage-tour[data-mode="presentation"] .tour-guide-card::before {
+  inset: 11px;
+  border-radius: 19px;
+}
+
+.usage-tour[data-mode="presentation"] .tour-guide-top {
+  margin-bottom: 18px;
+  font-size: 18px;
+}
+
+.usage-tour[data-mode="presentation"] .tour-guide-card .eyebrow {
+  font-size: 15px;
+  letter-spacing: .12em;
+}
+
+.usage-tour[data-mode="presentation"] .tour-guide-card h2 {
+  margin: 12px 0 14px;
+  font-size: 36px;
+  line-height: 1.3;
+}
+
+.usage-tour[data-mode="presentation"] .tour-guide-card p {
+  min-height: 108px;
+  margin-bottom: 24px;
+  font-size: 21px;
+  line-height: 1.8;
+}
+
+.usage-tour[data-mode="presentation"] .tour-guide-actions {
+  gap: 14px;
+}
+
+.usage-tour[data-mode="presentation"] .tour-guide-actions button {
+  min-width: 138px;
+  min-height: 54px;
+  padding: 13px 22px;
+  font-size: 18px;
+}
+
+.tour-guide-card.collapsed {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 15px 18px !important;
+  border-radius: 20px !important;
+}
+
+.tour-guide-card.collapsed::before,
+.tour-guide-card.collapsed > .eyebrow,
+.tour-guide-card.collapsed > h2,
+.tour-guide-card.collapsed > p {
+  display: none;
+}
+
+.tour-guide-card.collapsed .tour-guide-top {
+  flex: 1;
+  margin: 0 !important;
+}
+
+.tour-guide-card.collapsed .tour-guide-actions {
+  flex: 0 0 auto;
+  gap: 7px !important;
+}
+
+.tour-guide-card.collapsed .tour-guide-actions button {
+  min-width: 82px !important;
+  min-height: 40px !important;
+  padding: 8px 10px !important;
+  font-size: 14px !important;
+}
+
+@media (max-height: 800px) {
+  .usage-tour[data-mode="presentation"] .tour-guide-card {
+    padding: 22px 25px;
+  }
+  .usage-tour[data-mode="presentation"] .tour-guide-card h2 { font-size: 32px; }
+  .usage-tour[data-mode="presentation"] .tour-guide-card p {
+    min-height: 82px;
+    margin-bottom: 18px;
+    font-size: 20px;
+    line-height: 1.65;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -1146,7 +1254,18 @@ textarea { resize: vertical; line-height: 1.6; }
 
 .live2d-assistant { position: fixed; right: 8px; bottom: 0; z-index: 60; width: 250px; height: 330px; pointer-events: none; }
 .live2d-character { position: absolute; right: 0; bottom: 0; width: 230px; height: 320px; overflow: visible; padding: 0; border: 0; background: transparent; cursor: pointer; pointer-events: auto; filter: drop-shadow(0 12px 13px rgba(24,49,83,.2)); }
-.live2d-character canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
+.live2d-character canvas {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100% !important;
+  height: 100% !important;
+  max-width: 100%;
+  max-height: 100%;
+  opacity: 0;
+  transition: opacity .25s ease;
+}
+.live2d-character.ready canvas { opacity: 1; }
 .live2d-character:hover { transform: translateY(-3px); }
 .live2d-character:focus-visible { outline: 4px solid var(--yellow); outline-offset: -12px; border-radius: 45%; }
 .live2d-character.speaking { animation: live2d-bob .55s ease-in-out infinite alternate; }
@@ -1766,7 +1885,7 @@ body {
   border-radius: 24px;
   background:
     linear-gradient(rgba(234,248,255,.72), rgba(234,248,255,.82)),
-    url("assets/images/game/smart-ticket-station.png") center / cover;
+    url("assets/images/game/smart-ticket-station.webp") center / cover;
   box-shadow: inset 0 0 0 5px rgba(255,255,255,.72);
 }
 .ticket-track { display: block; width: 100%; height: 100%; min-height: 340px; }

@@ -19,7 +19,7 @@
       page: "map",
       level: 1,
       view: "challenge",
-      selector: ".level1-game .canvas-action-dock",
+      selector: ".level1-game .track-board",
       title: "02 情境游戏：看见条件与路径",
       text: "学生先预测游客应走哪条岔道，再运行闸机验证。游戏把“条件—真假路径—出票结果”变成可观察、可重试的过程。",
       placement: "top"
@@ -28,7 +28,7 @@
       page: "map",
       level: 3,
       view: "challenge",
-      selector: ".level3-game .canvas-action-dock",
+      selector: ".level3-game .track-board",
       title: "03 图码联动：把路径写成算法",
       text: "同一个身高同时经过流程图和 if/else 代码，节点与代码行同步高亮，帮助学生建立图形表示和符号表示之间的联系。",
       placement: "top"
@@ -37,7 +37,7 @@
       page: "map",
       level: 4,
       view: "challenge",
-      selector: ".rule-lab .lab-steps",
+      selector: ".rule-lab",
       title: "04 跨学科探究：用证据检验规则",
       text: "学生用119、120、121厘米排查边界错误，再比较不同判断顺序造成的票种、收入和公平差异。",
       placement: "top"
@@ -67,7 +67,7 @@
       level: 5,
       view: "challenge",
       projectStep: 3,
-      selector: ".fairness-lab .project-section-heading",
+      selector: ".fairness-lab",
       title: "07 公平证据：不能只写“我觉得”",
       text: "学生至少引用两名具体游客，说明相同条件是否得到一致结果，以及多项优惠冲突时为什么采用当前优先顺序。",
       placement: "top"
@@ -77,14 +77,14 @@
       level: 5,
       view: "challenge",
       projectStep: 4,
-      selector: ".audit-lab .project-section-heading",
+      selector: ".audit-lab",
       title: "08 同伴反例：让质疑推动修订",
       text: "另一小组用隐藏冲突案例发起反例挑战，原小组记录修改前后规则和理由，形成可以追溯的调试证据链。",
       placement: "top"
     },
     {
       page: "evaluation",
-      selector: ".rubric-groups",
+      selector: ".evaluation-layout",
       title: "09 学习评价：小组成果与个人理解并重",
       text: "评价按信息科技60分、数学25分、社会责任15分组织，同时保留个人小测、自评和反思，避免只评价最终答案。",
       placement: "top"
@@ -118,6 +118,7 @@
       eyebrow: document.querySelector("#tour-guide-card .eyebrow"),
       title: document.getElementById("tour-guide-title"),
       text: document.getElementById("tour-guide-text"),
+      collapse: document.getElementById("tour-collapse"),
       skip: document.getElementById("tour-skip"),
       previous: document.getElementById("tour-previous"),
       next: document.getElementById("tour-next")
@@ -144,6 +145,10 @@
     presentationSnapshot = mode === "presentation" ? window.CAL_CAPTURE_PRESENTATION_STATE?.() : null;
     closePanels();
     document.body.style.overflow = "hidden";
+    const ui = elements();
+    ui.root.dataset.mode = nextMode;
+    ui.card.classList.remove("collapsed");
+    ui.collapse?.setAttribute("aria-expanded", "true");
     elements().root.classList.remove("hidden");
     showStep();
   }
@@ -193,6 +198,11 @@
     ui.title.textContent = step.title;
     ui.text.textContent = missing ? `${step.text} 当前区域暂未完成加载，可以继续下一步。` : step.text;
     ui.skip.textContent = mode === "presentation" ? "结束讲解" : "跳过引导";
+    if (ui.collapse) {
+      const expanded = !ui.card.classList.contains("collapsed");
+      ui.collapse.textContent = expanded ? "收起说明" : "展开说明";
+      ui.collapse.setAttribute("aria-expanded", String(expanded));
+    }
     ui.previous.disabled = current === 0;
     ui.next.textContent = current === activeSteps().length - 1 ? (mode === "presentation" ? "完成并返回首页" : "完成引导") : "下一步";
     return ui;
@@ -201,7 +211,7 @@
   function highlight(target, step) {
     const rect = target.getBoundingClientRect();
     const ui = writeCard(step);
-    const padding = step.selector === "#assistant-button" ? 2 : 8;
+    const padding = step.selector === "#assistant-button" ? 2 : (mode === "presentation" ? 16 : 8);
     const left = Math.max(8, rect.left - padding);
     const top = Math.max(8, rect.top - padding);
     const width = Math.min(window.innerWidth - left - 8, Math.max(32, rect.width + padding * 2));
@@ -217,7 +227,7 @@
   function showMissingTarget(step) {
     const ui = writeCard(step, true);
     ui.spotlight.style.opacity = "0";
-    ui.card.style.width = `${Math.min(440, window.innerWidth - 36)}px`;
+    ui.card.style.width = `${Math.min(mode === "presentation" ? 560 : 440, window.innerWidth - 36)}px`;
     ui.card.style.left = "50%";
     ui.card.style.top = "50%";
     ui.card.style.transform = "translate(-50%, -50%)";
@@ -226,7 +236,8 @@
   function positionCard(card, target, placement) {
     const gap = 18;
     const margin = 18;
-    const cardWidth = Math.min(mode === "presentation" ? 440 : 390, window.innerWidth - margin * 2);
+    const collapsed = card.classList.contains("collapsed");
+    const cardWidth = Math.min(collapsed ? (mode === "presentation" ? 560 : 500) : (mode === "presentation" ? 560 : 390), window.innerWidth - margin * 2);
     card.style.transform = "none";
     card.style.width = `${cardWidth}px`;
     const cardHeight = card.offsetHeight || 270;
@@ -263,6 +274,18 @@
     showStep();
   }
 
+  function toggleCard() {
+    if (!visible) return;
+    const ui = elements();
+    ui.card.classList.toggle("collapsed");
+    const expanded = !ui.card.classList.contains("collapsed");
+    ui.collapse.textContent = expanded ? "收起说明" : "展开说明";
+    ui.collapse.setAttribute("aria-expanded", String(expanded));
+    const step = activeSteps()[current];
+    const target = document.querySelector(step.selector);
+    if (target) requestAnimationFrame(() => highlight(target, step));
+  }
+
   function finish(completed = false) {
     const finishedMode = mode;
     visible = false;
@@ -281,6 +304,7 @@
   function init() {
     document.getElementById("tour-next")?.addEventListener("click", next);
     document.getElementById("tour-previous")?.addEventListener("click", previous);
+    document.getElementById("tour-collapse")?.addEventListener("click", toggleCard);
     document.getElementById("tour-skip")?.addEventListener("click", () => finish(false));
     window.addEventListener("resize", () => {
       if (visible) showStep();
